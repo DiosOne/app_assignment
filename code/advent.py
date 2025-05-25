@@ -6,30 +6,28 @@ class Adventurer:
         self.attack2= heavyAttack
     
 class Fighter(Adventurer):
-    health = int(16)
-    armour= int(13)
-    lightAttack= int(6)
-    heavyAttack= int(10)
+    def __init__(self):
+        super().__init__(health=16, armour=13, lightAttack=6, heavyAttack=10)
+
 
 class Mage(Adventurer):
-    health= int(10)
-    armour= int(10)
-    lightAttack= int(8)
-    heavyAttack= int(16)
+    def __init__(self):
+        super().__init__(health=10, armour=10, lightAttack=8, heavyAttack=16)
+        
+
 
 class Ranger(Adventurer):
-    health= int(20)
-    armour= int(15)
-    lightAttack= int(4)
-    heavyAttack= int(8)
+    def __init__(self):
+        super().__init__(health=20, armour=15, lightAttack=4, heavyAttack=8)
 
-def show_stats(cls):
-    print(cls.__name__)
+
+def show_stats(character):
+    print(character.__class__.__name__)
     print('-' * 10)
-    print(f'Health: {cls.health}')
-    print(f'Armour Class: {cls.armour}')
-    print(f'Light Attack: {cls.lightAttack}')
-    print(f'Heavy Attack: {cls.heavyAttack}')
+    print(f'Health: {character.health}')
+    print(f'Armour Class: {character.armour}')
+    print(f'Light Attack max damage: {character.lightAttack}')
+    print(f'Heavy Attack max damage: {character.heavyAttack}')
     print('*' * 10)
     print()
 
