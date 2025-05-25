@@ -6,8 +6,8 @@ class Enemy:
         self.attack2= heavyAttack
     
 class Giant_Rat(Enemy):
-    health = int(16)
-    armour= int(13)
+    health = int(14)
+    armour= int(12)
     lightAttack= int(4)
     heavyAttack= int(8)
 
@@ -19,7 +19,7 @@ class Skeleton(Enemy):
 
 class Goblin(Enemy):
     health= int(20)
-    armour= int(15)
+    armour= int(12)
     lightAttack= int(4)
     heavyAttack= int(8)
 

@@ -8,7 +8,7 @@ class Adventurer:
 class Fighter(Adventurer):
     health = int(16)
     armour= int(13)
-    lightAttack= int(5)
+    lightAttack= int(6)
     heavyAttack= int(10)
 
 class Mage(Adventurer):
