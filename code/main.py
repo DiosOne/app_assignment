@@ -1,6 +1,7 @@
 from dice_rolls import dice_roll
 from advent import Adventurer, Fighter, Mage, Ranger, show_stats
 from enemies import Enemy, Goblin, Skeleton, Ratking, show_stats
+import loot_table
 
 # show_stats(Fighter)
 print(Fighter.__name__)
