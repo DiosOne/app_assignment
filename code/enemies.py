@@ -5,7 +5,7 @@ class Enemy:
         self.attack1= lightAttack
         self.attack2= heavyAttack
     
-class Giant_Rat(Enemy):
+class Ratking(Enemy):
     health = int(14)
     armour= int(12)
     lightAttack= int(4)
@@ -33,6 +33,6 @@ def show_stats(cls):
     print('*' * 10)
     print()
 
-show_stats(Giant_Rat)
-show_stats(Skeleton)
-show_stats(Goblin)
+# show_stats(Ratking)
+# show_stats(Skeleton)
+# show_stats(Goblin)

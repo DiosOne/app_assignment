@@ -19,8 +19,8 @@ def dice_roll(dice_type):
 
     return random.randint(1, max_number)
 
-attack_roll = dice_roll("d20")
-damage_roll = dice_roll("d8")
+# attack_roll = dice_roll("d20")
+# damage_roll = dice_roll("d8")
 
-print(f"Attack roll: {attack_roll}")
-print(f"Damage roll: {damage_roll}")
+# print(f"Attack roll: {attack_roll}")
+# print(f"Damage roll: {damage_roll}")

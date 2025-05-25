@@ -33,6 +33,6 @@ def show_stats(cls):
     print('*' * 10)
     print()
 
-show_stats(Fighter)
-show_stats(Mage)
-show_stats(Ranger)
+# show_stats(Fighter)
+# show_stats(Mage)
+# show_stats(Ranger)
