@@ -26,8 +26,8 @@ def show_stats(character):
     print('-' * 10)
     print(f'Health: {character.health}')
     print(f'Armour Class: {character.armour}')
-    print(f'Light Attack max damage: {character.lightAttack}')
-    print(f'Heavy Attack max damage: {character.heavyAttack}')
+    print(f'Light Attack max damage: {character.attack1}')
+    print(f'Heavy Attack max damage: {character.attack2}')
     print('*' * 10)
     print()
 

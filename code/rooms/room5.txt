@@ -1,0 +1,5 @@
+Small room
+
+2 doors. East (hides random chest), West (hallway to room 4)
+
+Chance encounter 1 of 3 enemies or nothing

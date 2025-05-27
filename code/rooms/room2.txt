@@ -1,0 +1,6 @@
+Smallish room
+
+3 doors, North (leads to hallway connecting to room 4), West (hides random chest), East (leads to room 1)
+
+
+chance of either random encounter 1 of 3 enemies.

@@ -1,0 +1,5 @@
+Medium room
+
+1 door, West (leads to room 1)
+
+chance of encounter 1 of 3 enemies, or a chest, or empty

@@ -23,7 +23,7 @@ class Goblin(Enemy):
     lightAttack= int(4)
     heavyAttack= int(8)
 
-def show_stats(cls):
+def show_enemy_stats(cls):
     print(cls.__name__)
     print('-' * 10)
     print(f'Health: {cls.health}')

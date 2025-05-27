@@ -1,16 +1,12 @@
-import random
 from dice_rolls import dice_roll
 from advent import Adventurer, Fighter, Mage, Ranger, show_stats
-from enemies import Enemy, Goblin, Skeleton, Ratking, show_enemy_stats
-from loot_table import chest_dict, enemy_drop, random_chest, random_enemy
+from enemies import Enemy, Goblin, Ratking, Skeleton, show_enemy_stats
+from loot_table import random_chest, random_enemy
 
-# show_stats(Fighter)
+player=Fighter()
 
-player= Fighter()
-# print(Fighter.__name__)
-# print(f'Health: {player.health}')
+
 show_stats(player)
-
 while True:
     attack_type= input('Choose your attack (light or heavy): ').lower()
 
@@ -33,7 +29,6 @@ print(f'You attack the Goblin')
 if attack_roll >= Goblin.armour:
         print(f'You do {damage_roll} points of damage')
 else: print('Your attack missed')
-
 
 # item, amount = random_chest()
 # print(f"You found {amount} x {item} in the chest!")

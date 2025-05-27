@@ -1,0 +1,5 @@
+Smallish room
+
+4 doors, North (leads to hallway to room 5), South (leads back to room 1), East (leads to hallway to room 6), West (leads to hallway to room 2)
+
+guranteed encounter 1 of 3 ememies
