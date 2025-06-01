@@ -1,0 +1,5 @@
+r2 - Guranteed encounter 1 of 3 enemies
+r3 - Chance of encounter 1 of 3 enemies, or a chest, or empty
+r4 - Guranteed encounter 1 of 3 ememies
+r5 - Chance encounter 1 of 3 enemies or nothing
+r6 - Guranteed Encounter 2 of 3 enemies

@@ -38,9 +38,55 @@ def show_room(room_name):
         title='Room Info'
     ))
 
+def room_encounter(room_name):
+    '''Handle encounters for rooms 2-6'''
+    encounter_text= ''
+    loot_found= None
+    enemies= [Goblin, Skeleton, Ratking]
+    if room_name== 'West Wing':
+        enemy_class= random.choice(enemies)
+        enemy= enemy_class()
+        encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+        
+    elif room_name== 'Library':
+        choice= random.choice(['enemy', 'chest', 'empty'])
+        if choice== 'enemy':
+            enemy_class= random.choice(enemies)
+            enemy= enemy_class()
+            encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+        elif choice== 'chest':
+            loot_found= random_chest()
+            encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
+        else:
+            encounter_text= '[grey]The room is empty.[/grey]'
+    
+    elif room_name== 'Dining Hall':
+        enemy_class= random.choice(enemies)
+        enemy= enemy_class()
+        encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+    
+    elif room_name== 'Bedroom':
+        choice= random.choice(['enemy', 'empty'])
+        if choice== 'enemy':
+            enemy_class= random.choice(enemies)
+            enemy= enemy_class()
+            encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+        else:
+            encounter_text= '[grey]The room is empty.[/grey]'
+    
+    elif room_name== 'Galley':
+        enemy_classes= random.sample(enemies, 2)
+        encounter_text= ''
+        for enemy_class in enemy_classes:
+            enemy= enemy_class()
+            encounter_text+= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+    
+    print(encounter_text)    
+
+
 def end_game():
     print('\n[green]You have survived![/green]')
-    print('[green]You collected {collected_loot}')
+    print('[green]You collected {collected_loot}[/green]')
     
     if collected_loot:
         for item in collected_loot:
@@ -49,7 +95,7 @@ def end_game():
     else:
         print('[dark green]You didn\'t collect any loot')
         
-    choice= Prompt.ask('\nWould you like to [bold]play again?[/bold]', choices=['Yes', 'No'], default='No').capitalize
+    choice= Prompt.ask('\nWould you like to [bold]play again?[/bold]', choices=['Yes', 'No'], default='No').capitalize()
     if choice== 'Yes':
         return True
     
@@ -60,6 +106,7 @@ def end_game():
         
 def game_loop():
     global current_room
+    encounter_rooms= ['West Wing', 'Library', 'Dining Hall', 'Bedroom', 'Galley']
     while True:
         if current_room== 'Exit':
             if end_game():
@@ -70,6 +117,8 @@ def game_loop():
             
             
         show_room(current_room)
+        if current_room in encounter_rooms:
+            room_encounter(current_room)
         move= Prompt.ask('What direction do you wish to move? (or type Quit to exit program)').capitalize()
         
         if move== 'Quit':
