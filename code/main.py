@@ -7,6 +7,7 @@ from dice_rolls import dice_roll
 from advent import Adventurer, Fighter, Mage, Ranger, show_stats
 from enemies import Enemy, Goblin, Skeleton, Ratking, show_enemy_stats
 from loot_table import chest_dict, enemy_drop, random_chest, random_enemy
+from attacks import fight_enemy
 
 def choose_player_class():
     print('Choose your class: [bold red]Fighter[/bold red], [bold purple]Mage[/bold purple], [bold green]Ranger[/bold green]')
@@ -32,7 +33,7 @@ def show_room(room_name):
     room= rooms[room_name]
     exits= ', '.join(room['exits'].keys())
     print(Panel(
-        f'[yellow]{room.get('display_name', room_name)}[/yellow]\n\n'
+        f'[blue]{room.get('display_name', room_name)}[/blue]\n\n'
         f'{room['description']}\n\n'
         f'[grey]Exits:[/grey]{exits}',
         title='Room Info'
@@ -43,10 +44,13 @@ def room_encounter(room_name):
     encounter_text= ''
     loot_found= None
     enemies= [Goblin, Skeleton, Ratking]
+    
     if room_name== 'West Wing':
         enemy_class= random.choice(enemies)
         enemy= enemy_class()
         encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+        print(encounter_text)
+        fight_enemy(player, enemy)
         
     elif room_name== 'Library':
         choice= random.choice(['enemy', 'chest', 'empty'])
@@ -54,6 +58,8 @@ def room_encounter(room_name):
             enemy_class= random.choice(enemies)
             enemy= enemy_class()
             encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+            print(encounter_text)
+            fight_enemy(player, enemy)
         elif choice== 'chest':
             loot_found= random_chest()
             encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
@@ -64,6 +70,8 @@ def room_encounter(room_name):
         enemy_class= random.choice(enemies)
         enemy= enemy_class()
         encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+        print(encounter_text)
+        fight_enemy(player, enemy)
     
     elif room_name== 'Bedroom':
         choice= random.choice(['enemy', 'empty'])
@@ -71,18 +79,27 @@ def room_encounter(room_name):
             enemy_class= random.choice(enemies)
             enemy= enemy_class()
             encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
+            print(encounter_text)
+            fight_enemy(player, enemy)
         else:
             encounter_text= '[grey]The room is empty.[/grey]'
     
     elif room_name== 'Galley':
         enemy_classes= random.sample(enemies, 2)
+        enemies_to_fight= []
         encounter_text= ''
         for enemy_class in enemy_classes:
             enemy= enemy_class()
-            encounter_text+= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+            enemies_to_fight.append(enemy)
+            encounter_text+= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]\n'
+        
+        print(encounter_text.strip())
+        for enemy in enemies_to_fight:
+            fight_enemy(player, enemy)
     
-    print(encounter_text)    
-
+    
+    return loot_found
+    
 
 def end_game():
     print('\n[green]You have survived![/green]')

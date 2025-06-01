@@ -3,14 +3,18 @@ from advent import Adventurer, Fighter, Mage, Ranger, show_stats
 from enemies import Enemy, Goblin, Ratking, Skeleton, show_enemy_stats
 from loot_table import random_chest, random_enemy
 import random
+from rich import print
 
-def fight_enemy(player):
-    enemy_class= random.choice([Goblin, Skeleton, Ratking])
-    enemy= enemy_class()
-    show_enemy_stats(enemy)
+def fight_enemy(player, enemy):
+    # enemy_class= random.choice([Goblin, Skeleton, Ratking])
+    # enemy= enemy_class()
+    # show_enemy_stats(enemy)
     while True:
-        attack_type= input('Choose your attack (light or heavy): ').lower()
+        attack_type= input('Choose your attack (light or heavy) or type "quit" to flee: ').lower()
 
+        if attack_type == 'quit':
+            print('[yellow]You fled the fight![/yellow]')
+            return 'quit'
 
         if attack_type== 'light':
             attack_roll= dice_roll('d20') + 2
