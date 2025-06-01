@@ -25,29 +25,48 @@ def fight_enemy(player, enemy):
             damage_roll= dice_roll(f'd{player.attack2}') + 2
         else:
             print('Invalid Attack. Please choose light or heavy')
+            continue
 
     # if player.attack1:
     #     damage_roll= dice_roll('d6')
     # elif player.attack2:
     #     damage_roll= dice_roll('d10') + 2
         
-    print(f'Attack Roll: {attack_roll}')
-    print(f'You attack the {enemy.name}')
+        print(f'Attack Roll: {attack_roll}')
+        print(f'You attack the {enemy.name}')
 
-    if attack_roll >= enemy.armour:
-        enemy.health-= damage_roll
-        print(f'[green]You do {damage_roll} points of damage to the [bold{enemy.colour}{enemy.name}][/bold{enemy.colour}]![/green]')
-    else: 
-        print('Your attack missed')
+        if attack_roll >= enemy.armour:
+            enemy.health-= damage_roll
+            print(f'[green]You do {damage_roll} points of damage to the [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]')
+
+        else: 
+            print('Your attack missed')
+            
+        if enemy.health<= 0:
+            print(f'[green]You defeated the [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]')
+            return 'win'
         
-    if enemy.health<= 0:
-        print(f'[green]You defeated the [bold{enemy.colour}{enemy.name}][/bold{enemy.colour}]![/green]')
-        return 'win'
-    
-    
+        enemy_attack_type= random.choice(['light', 'heavy'])
+        enemy_attack_roll= dice_roll('d20')
+        
+        if enemy_attack_roll>= player.armour:
+            if enemy_attack_type== 'light':
+                enemy_damage= dice_roll(f'd{enemy.attack1}')
+            else:
+                enemy_damage= dice_roll(f'd{enemy.attack2}')
+                
+            player.health-= enemy_damage
+            print(f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold] does {enemy_damage} damage![/red]')
+        else:
+            print(f'[blue]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold] misses![/blue]')
 
-# item, amount = random_chest()
-# print(f"You found {amount} x {item} in the chest!")
+        if player.health<= 0:
+            print('[bold red]You Have Been Defeated![/bold red]')
+            return 'defeat'
+        print(f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]")
 
-# drop, qty = random_enemy()
-# print(f"The enemy dropped {qty} x {drop}.")
+    # item, amount = random_chest()
+    # print(f"You found {amount} x {item} in the chest!")
+
+    # drop, qty = random_enemy()
+    # print(f"The enemy dropped {qty} x {drop}.")
