@@ -18,4 +18,6 @@ rooms contain random encounter
 
 - personal inventory (list) that can be added to from loot table and accessed by user
 
+- ```python -m pip install rich```
+
 <!-- ## 16150_Andrewartha_Dominic_DEV1001-Assessment_02 -->

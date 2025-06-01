@@ -1,42 +1,40 @@
 import random
+from rooms import rooms
+from rich import print
+from rich.panel import Panel
+from rich.prompt import Prompt
 from dice_rolls import dice_roll
 from advent import Adventurer, Fighter, Mage, Ranger, show_stats
 from enemies import Enemy, Goblin, Skeleton, Ratking, show_enemy_stats
 from loot_table import chest_dict, enemy_drop, random_chest, random_enemy
 
-# show_stats(Fighter)
+current_room= 'Main Hall'
 
-player= Fighter()
-# print(Fighter.__name__)
-# print(f'Health: {player.health}')
-show_stats(player)
+def show_room(room_name):
+    room= rooms[room_name]
+    exits= ', '.join(room['exits'].keys())
+    print(Panel(
+        f'[yellow]{room.get('display_name', room_name)}[/yellow]\n\n'
+        f'{room['description']}\n\n'
+        f'[grey]Exits:[/grey]{exits}',
+        title='Room Info'
+    ))
 
-while True:
-    attack_type= input('Choose your attack (light or heavy): ').lower()
-
-
-    if attack_type== 'light':
-        attack_roll= dice_roll('d20') + 2
-        break
-    elif attack_type== "heavy":
-        attack_roll= dice_roll('d20')
-        break
-    else:
-        print('Invalid Attack. Please choose light or heavy')
-
-if player.attack1:
-    damage_roll= dice_roll('d6')
-elif player.attack2:
-    damage_roll= dice_roll('d10') + 2
-print(f'Attack Roll: {attack_roll}')
-print(f'You attack the Goblin')
-if attack_roll >= Goblin.armour:
-        print(f'You do {damage_roll} points of damage')
-else: print('Your attack missed')
-
-
-# item, amount = random_chest()
-# print(f"You found {amount} x {item} in the chest!")
-
-# drop, qty = random_enemy()
-# print(f"The enemy dropped {qty} x {drop}.")
+def game_loop():
+    global current_room
+    while True:
+        show_room(current_room)
+        move= Prompt.ask('What direction do you wish to move? (or type Quit to exit program)').capitalize()
+        
+        if move== 'Quit':
+            print('[red]Thank you for playing![/red]')
+            break
+        
+        if move in rooms[current_room]['exits']:
+            current_room= rooms[current_room]['exits'][move]
+            
+        else:
+            print(f'[red]You cannot go {move}![/red]')
+            
+if __name__== '__main__':
+    game_loop()
