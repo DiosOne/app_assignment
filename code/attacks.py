@@ -4,7 +4,6 @@ from enemies import Enemy, Goblin, Ratking, Skeleton, show_enemy_stats
 from loot_table import random_chest, random_enemy
 import random
 
-
 def fight_enemy(player):
     enemy_class= random.choice([Goblin, Skeleton, Ratking])
     enemy= enemy_class()

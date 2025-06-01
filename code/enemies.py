@@ -1,25 +1,26 @@
 class Enemy:
-    def __init__(self, name, health, armour, lightAttack, heavyAttack):
-        self.name = name
-        self.health = health
-        self.armour = armour
-        self.attack1 = lightAttack
-        self.attack2 = heavyAttack
+    def __init__(self, name, health, armour, lightAttack, heavyAttack, colour):
+        self.name= name
+        self.health= health
+        self.armour= armour
+        self.attack1= lightAttack
+        self.attack2= heavyAttack
+        self.colour= colour
 
 
 class Ratking(Enemy):
     def __init__(self):
-        super().__init__(name="Ratking", health=14, armour=12, lightAttack=4, heavyAttack=8)
+        super().__init__(name="Ratking", health=14, armour=12, lightAttack=4, heavyAttack=8, colour='brown')
 
 
 class Skeleton(Enemy):
     def __init__(self):
-        super().__init__(name="Skeleton", health=10, armour=10, lightAttack=6, heavyAttack=12)
+        super().__init__(name="Skeleton", health=10, armour=10, lightAttack=6, heavyAttack=12, colour='white')
 
 
 class Goblin(Enemy):
     def __init__(self):
-        super().__init__(name="Goblin", health=20, armour=12, lightAttack=4, heavyAttack=8)
+        super().__init__(name="Goblin", health=20, armour=12, lightAttack=4, heavyAttack=8, colour='chartreuse4')
 
 
 def show_enemy_stats(enemy):
