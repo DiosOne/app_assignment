@@ -8,6 +8,23 @@ from advent import Adventurer, Fighter, Mage, Ranger, show_stats
 from enemies import Enemy, Goblin, Skeleton, Ratking, show_enemy_stats
 from loot_table import chest_dict, enemy_drop, random_chest, random_enemy
 
+def choose_player_class():
+    print('Choose your class: [bold red]Fighter[/bold red], [bold purple]Mage[/bold purple], [bold green]Ranger[/bold green]')
+    while True:
+        choice= input('Class: ').capitalize()
+        if choice== 'Fighter':
+            return Fighter()
+        elif choice== 'Mage':
+            return Mage()
+        elif choice== 'Ranger':
+            return Ranger()
+        else:
+            print('Invalid class, try again')
+player= choose_player_class()
+print(f"[bold yellow]You have chosen the[/bold yellow] [{player.colour}]{player.__class__.__name__}[/{player.colour}]")
+show_stats(player)
+
+
 current_room= 'Main Hall'
 collected_loot= []
 

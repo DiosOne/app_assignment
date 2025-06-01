@@ -1,35 +1,34 @@
 class Enemy:
-    def __init__(self, health, armour, lightAttack, heavyAttack):
-        self.health= health
-        self.armour= armour
-        self.attack1= lightAttack
-        self.attack2= heavyAttack
-    
+    def __init__(self, name, health, armour, lightAttack, heavyAttack):
+        self.name = name
+        self.health = health
+        self.armour = armour
+        self.attack1 = lightAttack
+        self.attack2 = heavyAttack
+
+
 class Ratking(Enemy):
-    health = int(14)
-    armour= int(12)
-    lightAttack= int(4)
-    heavyAttack= int(8)
+    def __init__(self):
+        super().__init__(name="Ratking", health=14, armour=12, lightAttack=4, heavyAttack=8)
+
 
 class Skeleton(Enemy):
-    health= int(10)
-    armour= int(10)
-    lightAttack= int(6)
-    heavyAttack= int(12)
+    def __init__(self):
+        super().__init__(name="Skeleton", health=10, armour=10, lightAttack=6, heavyAttack=12)
+
 
 class Goblin(Enemy):
-    health= int(20)
-    armour= int(12)
-    lightAttack= int(4)
-    heavyAttack= int(8)
+    def __init__(self):
+        super().__init__(name="Goblin", health=20, armour=12, lightAttack=4, heavyAttack=8)
 
-def show_enemy_stats(cls):
-    print(cls.__name__)
+
+def show_enemy_stats(enemy):
+    print(enemy.name)
     print('-' * 10)
-    print(f'Health: {cls.health}')
-    print(f'Armour Class: {cls.armour}')
-    print(f'Light Attack: {cls.lightAttack}')
-    print(f'Heavy Attack: {cls.heavyAttack}')
+    print(f'Health: {enemy.health}')
+    print(f'Armour Class: {enemy.armour}')
+    print(f'Light Attack: {enemy.attack1}')
+    print(f'Heavy Attack: {enemy.attack2}')
     print('*' * 10)
     print()
 
