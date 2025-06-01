@@ -1,4 +1,6 @@
 Main Hall
 
+large room, chandeliers hang from ceiling
+
 3 doors, West (leads to room 2), East (leads to room 3), and North (leads to room 4)
 

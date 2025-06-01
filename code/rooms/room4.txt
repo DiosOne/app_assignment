@@ -1,4 +1,6 @@
-Smallish room
+Dining Hall
+
+Large table in center of room, lit by chandelier
 
 4 doors, North (leads to hallway to room 5), South (leads back to room 1), East (leads to hallway to room 6), West (leads to hallway to room 2)
 

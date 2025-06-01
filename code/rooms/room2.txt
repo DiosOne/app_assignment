@@ -1,4 +1,6 @@
-Smallish room
+West Wing
+
+Shelves and torches line the walls
 
 3 doors, North (leads to hallway connecting to room 4), West (hides random chest), East (leads to room 1)
 

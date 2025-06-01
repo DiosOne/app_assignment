@@ -1,5 +1,6 @@
-Smallish Room
+Galley
 
+Large hearth and benches
 2 doors, North (leads to exit), South (hallway to room 4)
 
 Guranteed Encounter 2 of 3 enemies

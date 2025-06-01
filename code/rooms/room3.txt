@@ -1,5 +1,6 @@
-Medium room
+Library
 
+Dusty bookshelves are lit by numerous candelabras 
 1 door, West (leads to room 1)
 
 chance of encounter 1 of 3 enemies, or a chest, or empty

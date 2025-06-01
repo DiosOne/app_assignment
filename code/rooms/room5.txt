@@ -1,4 +1,6 @@
-Small room
+Bedroom
+
+Cosy room with grand bedframe in center
 
 2 doors. East (hides random chest), West (hallway to room 4)
 
