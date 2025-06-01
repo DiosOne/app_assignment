@@ -9,6 +9,7 @@ from enemies import Enemy, Goblin, Skeleton, Ratking, show_enemy_stats
 from loot_table import chest_dict, enemy_drop, random_chest, random_enemy
 
 current_room= 'Main Hall'
+collected_loot= []
 
 def show_room(room_name):
     room= rooms[room_name]
@@ -20,9 +21,37 @@ def show_room(room_name):
         title='Room Info'
     ))
 
+def end_game():
+    print('\n[green]You have survived![/green]')
+    print('[green]You collected {collected_loot}')
+    
+    if collected_loot:
+        for item in collected_loot:
+            print(f'.{item}')
+            
+    else:
+        print('[dark green]You didn\'t collect any loot')
+        
+    choice= Prompt.ask('\nWould you like to [bold]play again?[/bold]', choices=['Yes', 'No'], default='No').capitalize
+    if choice== 'Yes':
+        return True
+    
+    else:
+        print('[red]Thank you for playing[/red]')
+        return False
+        
+        
 def game_loop():
     global current_room
     while True:
+        if current_room== 'Exit':
+            if end_game():
+                current_room= 'Main Hall'
+                continue
+            else:
+                break
+            
+            
         show_room(current_room)
         move= Prompt.ask('What direction do you wish to move? (or type Quit to exit program)').capitalize()
         

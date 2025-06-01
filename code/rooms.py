@@ -37,5 +37,10 @@ rooms= {
     'Bedroom Cupboard':{
         'description': 'A small cupboard containing a chest',
         'exits':{'East': 'Bedroom'}
+    },
+    
+    'Exit':{
+        'description': 'You have survived the dungeon!',
+        'exits':{}
     }
 }
