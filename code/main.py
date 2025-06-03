@@ -8,6 +8,7 @@ from advent import Adventurer, Fighter, Mage, Ranger, show_stats
 from enemies import Enemy, Goblin, Skeleton, Ratking, show_enemy_stats
 from loot_table import chest_dict, enemy_drop, random_chest, random_enemy
 from attacks import fight_enemy
+from inventory import add_to_inv, show_inv
 
 def choose_player_class():
     print('Choose your class: [bold red]Fighter[/bold red], [bold purple]Mage[/bold purple], [bold green]Ranger[/bold green]')
@@ -46,6 +47,12 @@ def room_encounter(room_name):
     loot_found= None
     enemies= [Goblin, Skeleton, Ratking]
     
+    if room_name in ['Cupboard', 'Bedroom Cupboard']:
+        loot_found= random_chest()
+        add_to_inv(loot_found[0], loot_found[1])
+        encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
+        print(encounter_text)
+        return loot_found
     
     if room_name== 'West Wing':
         enemy_class= random.choice(enemies)
@@ -53,7 +60,11 @@ def room_encounter(room_name):
         encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
         print(encounter_text)
         result= fight_enemy(player, enemy)
-        if result is False:
+        if result== 'win':
+            drop= random_enemy()
+            add_to_inv(drop[0],drop[1])
+            print(f'[bright_green]The enemy dropped {drop[1]}x{drop[0]}![/bright_green]')
+        elif result is False:
             return False
         
         
@@ -65,10 +76,15 @@ def room_encounter(room_name):
             encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
             print(encounter_text)
             result= fight_enemy(player, enemy)
-            if result is False:
+            if result== 'win':
+                drop= random_enemy()
+                add_to_inv(drop[0],drop[1])
+                print(f'[bright_green]The enemy dropped {drop[1]}x{drop[0]}![/bright_green]')
+            elif result is False:
                 return False
         elif choice== 'chest':
             loot_found= random_chest()
+            add_to_inv(loot_found[0], loot_found[1])
             encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
         else:
             encounter_text= '[grey]The room is empty.[/grey]'
@@ -79,7 +95,11 @@ def room_encounter(room_name):
         encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
         print(encounter_text)
         result= fight_enemy(player, enemy)
-        if result is False:
+        if result== 'win':
+            drop= random_enemy()
+            add_to_inv(drop[0],drop[1])
+            print(f'[bright_green]The enemy dropped {drop[1]}x{drop[0]}![/bright_green]')
+        elif result is False:
             return False
     
     elif room_name== 'Bedroom':
@@ -90,7 +110,11 @@ def room_encounter(room_name):
             encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
             print(encounter_text)
             result= fight_enemy(player, enemy)
-            if result is False:
+            if result== 'win':
+                drop= random_enemy()
+                add_to_inv(drop[0],drop[1])
+                print(f'[bright_green]The enemy dropped {drop[1]}x{drop[0]}![/bright_green]')
+            elif result is False:
                 return False
         else:
             encounter_text= '[grey]The room is empty.[/grey]'
@@ -107,9 +131,22 @@ def room_encounter(room_name):
         print(encounter_text.strip())
         for enemy in enemies_to_fight:
             result= fight_enemy(player, enemy)
-            if result is False:
+            if result== 'win':
+                drop= random_enemy()
+                add_to_inv(drop[0],drop[1])
+                print(f'[bright_green]The enemy dropped {drop[1]}x{drop[0]}![/bright_green]')
+            elif result is False:
                 return False
     
+    # elif room_name== 'Cupboard':
+    #     loot_found= random_chest()
+    #     add_to_inv(loot_found[0], loot_found[1])
+    #     encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
+        
+    # elif room_name== 'Bedroom Cupboard':
+    #     loot_found= random_chest()
+    #     add_to_inv(loot_found[0], loot_found[1])
+    #     encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
     
     return loot_found
     
@@ -152,7 +189,11 @@ def game_loop():
             result = room_encounter(current_room)
             if result is False:
                 break
-        move= Prompt.ask('What direction do you wish to move? (or type Quit to exit program)').capitalize()
+        move= Prompt.ask('What direction do you wish to move? (or type Quit to exit, or Inventory to check)').capitalize()
+        
+        if move== 'Inventory':
+            show_inv()
+            continue
         
         if move== 'Quit':
             print('[red]Thank you for playing![/red]')

@@ -8,7 +8,7 @@ def show_inv():
     if not inventory:
         print('[bright_black]Your inventory is empty.[/bright_black]')
     else:
-        print('[bold][dodger_blue1]Your inventory: [/dodger_blue1][/bold]')
+        print('[dodger_blue1][bold]Your inventory: [/bold][/dodger_blue1]')
         counted= {}
         for item in inventory:
             counted[item]= counted.get(item, 0) + 1
