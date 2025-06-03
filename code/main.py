@@ -29,6 +29,7 @@ show_stats(player)
 current_room= 'Main Hall'
 collected_loot= []
 
+
 def show_room(room_name):
     room= rooms[room_name]
     exits= ', '.join(room['exits'].keys())
@@ -45,12 +46,16 @@ def room_encounter(room_name):
     loot_found= None
     enemies= [Goblin, Skeleton, Ratking]
     
+    
     if room_name== 'West Wing':
         enemy_class= random.choice(enemies)
         enemy= enemy_class()
         encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
         print(encounter_text)
-        fight_enemy(player, enemy)
+        result= fight_enemy(player, enemy)
+        if result is False:
+            return False
+        
         
     elif room_name== 'Library':
         choice= random.choice(['enemy', 'chest', 'empty'])
@@ -59,7 +64,9 @@ def room_encounter(room_name):
             enemy= enemy_class()
             encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
             print(encounter_text)
-            fight_enemy(player, enemy)
+            result= fight_enemy(player, enemy)
+            if result is False:
+                return False
         elif choice== 'chest':
             loot_found= random_chest()
             encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
@@ -71,7 +78,9 @@ def room_encounter(room_name):
         enemy= enemy_class()
         encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
         print(encounter_text)
-        fight_enemy(player, enemy)
+        result= fight_enemy(player, enemy)
+        if result is False:
+            return False
     
     elif room_name== 'Bedroom':
         choice= random.choice(['enemy', 'empty'])
@@ -80,7 +89,9 @@ def room_encounter(room_name):
             enemy= enemy_class()
             encounter_text= (f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]')
             print(encounter_text)
-            fight_enemy(player, enemy)
+            result= fight_enemy(player, enemy)
+            if result is False:
+                return False
         else:
             encounter_text= '[grey]The room is empty.[/grey]'
     
@@ -95,7 +106,9 @@ def room_encounter(room_name):
         
         print(encounter_text.strip())
         for enemy in enemies_to_fight:
-            fight_enemy(player, enemy)
+            result= fight_enemy(player, enemy)
+            if result is False:
+                return False
     
     
     return loot_found
@@ -122,6 +135,7 @@ def end_game():
         
         
 def game_loop():
+    
     global current_room
     encounter_rooms= ['West Wing', 'Library', 'Dining Hall', 'Bedroom', 'Galley']
     while True:
@@ -135,7 +149,9 @@ def game_loop():
             
         show_room(current_room)
         if current_room in encounter_rooms:
-            room_encounter(current_room)
+            result = room_encounter(current_room)
+            if result is False:
+                break
         move= Prompt.ask('What direction do you wish to move? (or type Quit to exit program)').capitalize()
         
         if move== 'Quit':
@@ -150,3 +166,8 @@ def game_loop():
             
 if __name__== '__main__':
     game_loop()
+    
+    # drop loot and need health potions
+    # player death scenario - done kind of. need to fix start again loop.
+    # sort out the readme and notes
+    # docstrings

@@ -4,6 +4,7 @@ from enemies import Enemy, Goblin, Ratking, Skeleton, show_enemy_stats
 from loot_table import random_chest, random_enemy
 import random
 from rich import print
+from rich.prompt import Prompt
 
 def fight_enemy(player, enemy):
     # enemy_class= random.choice([Goblin, Skeleton, Ratking])
@@ -61,8 +62,16 @@ def fight_enemy(player, enemy):
             print(f'[blue]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold] misses![/blue]')
 
         if player.health<= 0:
-            print('[bold red]You Have Been Defeated![/bold red]')
-            return 'defeat'
+            print('[bold][red]You Have Been Defeated![/red][/bold]')
+            choice= Prompt.ask('\nWould you like to [bold]play again?[/bold]', choices=['Yes', 'No'], default='No').capitalize()
+            if choice== 'Yes':
+                return True
+            
+            else:
+                print('[red]Thank you for playing[/red]')
+                return False
+            
+                
         print(f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]")
 
     # item, amount = random_chest()

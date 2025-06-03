@@ -1,7 +1,7 @@
 rooms= {
     'Main Hall':{
         'description': 'You see a grand entrance hall, chandeliers hanging from the ceiling',
-        'exits':{'North': 'Dining Hall', 'East':'Library', 'South': 'Entrance', 'West': 'West Wing'}
+        'exits':{'North': 'Dining Hall', 'East':'Library', 'West': 'West Wing'}
     },
     
     'West Wing':{
