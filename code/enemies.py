@@ -10,7 +10,7 @@ class Enemy:
 
 class Ratking(Enemy):
     def __init__(self):
-        super().__init__(name="Ratking", health=14, armour=12, lightAttack=4, heavyAttack=8, colour='brown')
+        super().__init__(name="Ratking", health=14, armour=12, lightAttack=4, heavyAttack=8, colour='orange4')
 
 
 class Skeleton(Enemy):
