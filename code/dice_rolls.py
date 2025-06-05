@@ -1,6 +1,18 @@
+'''_summary_
+
+    :return: _description_
+    :rtype: _type_
+    '''
 import random
 
 def dice_roll(dice_type):
+    '''_summary_
+
+    :param dice_type: _description_
+    :type dice_type: _type_
+    :return: _description_
+    :rtype: _type_
+    '''
 
     if dice_type == "d4":
         max_number = 4
@@ -16,6 +28,8 @@ def dice_roll(dice_type):
         max_number = 16
     elif dice_type == "d20":
         max_number = 20
+    else:
+        raise ValueError(f'Unknown dice type: {dice_type}')
 
     return random.randint(1, max_number)
 

@@ -1,4 +1,9 @@
 #possible loot
+'''Module for handling random loot generation from chests and enemies.
+
+Provides functions to randomly select items and their quantities
+based on predefined loot tables for chests and enemies.
+'''
 import random
 chest_dict= {
     'Gold': 200,
@@ -16,20 +21,25 @@ enemy_drop= {
     'Junk': 10
 }
 def random_chest():
+    '''Select a random item and quantity from the chest loot table.
+
+    :return: Tuple containing the item name and quantity found in the chest.
+    :rtype: tuple(str, int)
+    '''
+
     item= random.choice(list(chest_dict.keys()))
     max_amount= chest_dict[item]
     amount= random.randint(1, max_amount)
     return(item, amount)
 
 def random_enemy():
+    '''Select a random item and quantity from the enemy drop loot table.
+
+    :return: Tuple containing the item name and quantity dropped by the enemy.
+    :rtype: tuple(str, int)
+    '''
+
     item= random.choice(list(enemy_drop.keys()))
     max_amount= enemy_drop[item]
     amount= random.randint(1, max_amount)
     return(item, amount)
-
-
-# item, amount = random_chest()
-# print(f"You found {amount} x {item} in the chest!")
-
-# drop, qty = random_enemy()
-# print(f"The enemy dropped {qty} x {drop}.")

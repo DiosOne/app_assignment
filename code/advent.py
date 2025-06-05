@@ -1,39 +1,76 @@
-from rich import print
+'''Module defining player character classes and stats display functions for the adventure game.
+'''
+from rich import print as rprint
 
 class Adventurer:
+    '''Base class for all adventurer player characters.
+
+    :param health: Maximum health points of the adventurer.
+    :type health: int
+    :param armour: Armour class (defense rating).
+    :type armour: int
+    :param lightAttack: Maximum damage for light attacks.
+    :type lightAttack: int
+    :param heavyAttack: Maximum damage for heavy attacks.
+    :type heavyAttack: int
+    :param colour: Display colour for the character's name in terminal output.
+    :type colour: str
+    '''
     def __init__(self, health, armour, lightAttack, heavyAttack, colour='white'):
         self.health= health
         self.armour= armour
         self.attack1= lightAttack
         self.attack2= heavyAttack
         self.colour= colour
-    
+
 class Fighter(Adventurer):
+    '''Fighter class: High health and armor, moderate damage.
+
+    Inherits from Adventurer.
+
+    :param Adventurer: Base adventurer class.
+    :type Adventurer: class
+    '''
     def __init__(self):
-        super().__init__(health=16, armour=13, lightAttack=6, heavyAttack=10, colour='bold red')
+        super().__init__(health=160, armour=13, lightAttack=6, heavyAttack=10, colour='bold red')
 
 
 class Mage(Adventurer):
+    '''Mage class: Lower health and armor, higher damage output.
+
+    Inherits from Adventurer.
+
+    :param Adventurer: Base adventurer class.
+    :type Adventurer: class
+    '''
     def __init__(self):
-        super().__init__(health=10, armour=10, lightAttack=8, heavyAttack=16, colour='bold purple')
-        
+        super().__init__(health=100, armour=10, lightAttack=8, heavyAttack=16, colour='bold purple')
+
 
 
 class Ranger(Adventurer):
+    '''Ranger class: High health and armor, lower damage but balanced stats.
+
+    Inherits from Adventurer.
+
+    :param Adventurer: Base adventurer class.
+    :type Adventurer: class
+    '''
     def __init__(self):
-        super().__init__(health=20, armour=15, lightAttack=4, heavyAttack=8, colour='bold green')
+        super().__init__(health=200, armour=15, lightAttack=4, heavyAttack=8, colour='bold green')
 
 
 def show_stats(character):
-    print(f'[{character.colour}]{character.__class__.__name__}[/{character.colour}]')
-    print('-' * 10)
-    print(f'Health: {character.health}')
-    print(f'Armour Class: {character.armour}')
-    print(f'Light Attack max damage: {character.attack1}')
-    print(f'Heavy Attack max damage: {character.attack2}')
-    print('*' * 10)
-    print()
+    '''Display the stats of a given character using rich formatted print.
 
-# show_stats(Fighter)
-# show_stats(Mage)
-# show_stats(Ranger)
+    :param character: Adventurer or subclass instance whose stats will be displayed.
+    :type character: Adventurer
+    '''
+    rprint(f'[{character.colour}]{character.__class__.__name__}[/{character.colour}]')
+    rprint('-' * 10)
+    rprint(f'Health: {character.health}')
+    rprint(f'Armour Class: {character.armour}')
+    rprint(f'Light Attack max damage: {character.attack1}')
+    rprint(f'Heavy Attack max damage: {character.attack2}')
+    rprint('*' * 10)
+    rprint()
