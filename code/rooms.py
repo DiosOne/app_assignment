@@ -15,7 +15,8 @@ rooms= {
     },
 
     'West Wing':{
-        'description':  'You are in a medium sized room, with storage shelves and torches on the walls',
+        'description':  
+            'You are in a medium sized room, with storage shelves and torches on the walls',
         'exits':{'North': 'Dining Hall', 'East': 'Main Hall', 'West': 'Cupboard'}
     },
 

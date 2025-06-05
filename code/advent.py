@@ -9,19 +9,19 @@ class Adventurer:
     :type health: int
     :param armour: Armour class (defense rating).
     :type armour: int
-    :param lightAttack: Maximum damage for light attacks.
-    :type lightAttack: int
-    :param heavyAttack: Maximum damage for heavy attacks.
-    :type heavyAttack: int
+    :param light_attack: Maximum damage for light attacks.
+    :type light_attack: int
+    :param heavy_attack: Maximum damage for heavy attacks.
+    :type heavy_attack: int
     :param colour: Display colour for the character's name in terminal output.
     :type colour: str
     '''
-    def __init__(self, health, armour, lightAttack, heavyAttack, colour='white'):
-        self.health= health
-        self.armour= armour
-        self.attack1= lightAttack
-        self.attack2= heavyAttack
-        self.colour= colour
+    def __init__(self, health, armour, light_attack, heavy_attack, colour='white'):
+        self.health = health
+        self.armour = armour
+        self.attack1 = light_attack
+        self.attack2 = heavy_attack
+        self.colour = colour
 
 class Fighter(Adventurer):
     '''Fighter class: High health and armor, moderate damage.
@@ -32,8 +32,13 @@ class Fighter(Adventurer):
     :type Adventurer: class
     '''
     def __init__(self):
-        super().__init__(health=160, armour=13, lightAttack=6, heavyAttack=10, colour='bold red')
-
+        super().__init__(
+            health=160,
+            armour=13,
+            light_attack=6,
+            heavy_attack=10,
+            colour='bold red'
+            )
 
 class Mage(Adventurer):
     '''Mage class: Lower health and armor, higher damage output.
@@ -44,9 +49,13 @@ class Mage(Adventurer):
     :type Adventurer: class
     '''
     def __init__(self):
-        super().__init__(health=100, armour=10, lightAttack=8, heavyAttack=16, colour='bold purple')
-
-
+        super().__init__(
+            health=100,
+            armour=10,
+            light_attack=8,
+            heavy_attack=16,
+            colour='bold purple'
+            )
 
 class Ranger(Adventurer):
     '''Ranger class: High health and armor, lower damage but balanced stats.
@@ -57,8 +66,13 @@ class Ranger(Adventurer):
     :type Adventurer: class
     '''
     def __init__(self):
-        super().__init__(health=200, armour=15, lightAttack=4, heavyAttack=8, colour='bold green')
-
+        super().__init__(
+            health=200,
+            armour=15,
+            light_attack=4,
+            heavy_attack=8,
+            colour='bold green'
+            )
 
 def show_stats(character):
     '''Display the stats of a given character using rich formatted print.

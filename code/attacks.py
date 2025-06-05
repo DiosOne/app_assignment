@@ -61,13 +61,19 @@ def fight_enemy(player, enemy):
 
         if attack_roll >= enemy.armour:
             enemy.health-= damage_roll
-            rprint(f'[green]You do {damage_roll} points of damage to the [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]')
+            rprint(
+                f'[green]You do {damage_roll} points of damage to the '
+                f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
+            )
 
         else:
             rprint('Your attack missed')
 
         if enemy.health<= 0:
-            rprint(f'[green]You defeated the [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]')
+            rprint(
+                f'[green]You defeated the [bold]'
+                f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
+            )
             return 'win'
 
         enemy_attack_type= random.choice(['light', 'heavy'])
@@ -80,13 +86,22 @@ def fight_enemy(player, enemy):
                 enemy_damage= dice_roll(f'd{enemy.attack2}')
 
             player.health-= enemy_damage
-            rprint(f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold] does {enemy_damage} damage![/red]')
+            rprint(
+                f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}]'
+                f'[/bold] does {enemy_damage} damage![/red]')
         else:
-            rprint(f'[blue]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold] misses![/blue]')
+            rprint(
+                f'[blue]The [bold][{enemy.colour}]{enemy.name}'
+                f'[/{enemy.colour}][/bold] misses![/blue]')
 
         if player.health<= 0:
             rprint('[bold][red]You Have Been Defeated![/red][/bold]')
-            choice= Prompt.ask('\nWould you like to [bold]play again?[/bold]', choices=['Yes', 'No'], default='No').capitalize()
+            choice = Prompt.ask(
+                '\nWould you like to [bold]play again?[/bold]',
+                choices=['Yes', 'No'],
+                default='No'
+            ).capitalize()
+
             if choice== 'Yes':
                 return True
 
@@ -94,4 +109,7 @@ def fight_enemy(player, enemy):
                 rprint('[red]Thank you for playing[/red]')
                 return False
 
-        rprint(f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]")
+        rprint(
+            f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | "
+            f"Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]"
+        )

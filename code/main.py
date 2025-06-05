@@ -42,7 +42,8 @@ def choose_player_class():
     :return: An instance of the selected player class.
     :rtype: Fighter | Mage | Ranger
     '''
-    rprint('Choose your class: [bold red]Fighter[/bold red], [bold purple]Mage[/bold purple], [bold green]Ranger[/bold green]')
+    rprint('Choose your class: [bold bright_red]Fighter[/bold bright_red], '
+           '[bold purple]Mage[/bold purple], [bold green]Ranger[/bold green]')
     while True:
         choice= input('Class: ').capitalize()
         if choice== 'Fighter':
@@ -54,7 +55,8 @@ def choose_player_class():
         else:
             rprint('Invalid class, try again')
 player= choose_player_class()
-rprint(f"[bold yellow]You have chosen the[/bold yellow] [{player.colour}]{player.__class__.__name__}[/{player.colour}]")
+rprint(f"[bold yellow]You have chosen the[/bold yellow] "
+       f"[{player.colour}]{player.__class__.__name__}[/{player.colour}]")
 show_stats(player)
 
 
@@ -72,7 +74,7 @@ def show_room(room_name):
     room= rooms[room_name]
     exits= ', '.join(room['exits'].keys())
     rprint(Panel(
-        f'[blue]{room.get("display_name", room_name)}[/blue]\n\n'
+        f'[bright_blue]{room.get("display_name", room_name)}[/bright_blue]\n\n'
         f'{room['description']}\n\n'
         f'[grey66]Exits:[/grey66]{exits}',
         title='Room Info'
@@ -99,7 +101,9 @@ def room_encounter(room_name):
             loot_found= random_chest()
             add_to_inv(loot_found[0], loot_found[1])
             collected_loot.append(loot_found)
-            encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
+            encounter_text = (
+                f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
+            )
             rprint(encounter_text)
             looted_rooms.add(room_name)
         else:
@@ -110,7 +114,11 @@ def room_encounter(room_name):
         if room_name not in fought_rooms:
             enemy_class= random.choice(enemies)
             enemy= enemy_class()
-            encounter_text= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+            encounter_text = (
+                f'[red]An enemy [{enemy.colour}]'
+                f'{enemy.name}[/{enemy.colour}] appears![/red]'
+            )
+
             rprint(encounter_text)
             result= fight_enemy(player, enemy)
             if result== 'win':
@@ -130,7 +138,10 @@ def room_encounter(room_name):
             if choice== 'enemy':
                 enemy_class= random.choice(enemies)
                 enemy= enemy_class()
-                encounter_text= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+                encounter_text = (
+                    f'[red]An enemy [{enemy.colour}]'
+                    f'{enemy.name}[/{enemy.colour}] appears![/red]'
+                )
                 rprint(encounter_text)
                 result= fight_enemy(player, enemy)
                 if result== 'win':
@@ -145,7 +156,9 @@ def room_encounter(room_name):
                 loot_found= random_chest()
                 add_to_inv(loot_found[0], loot_found[1])
                 collected_loot.append(loot_found)
-                encounter_text= f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
+                encounter_text= (
+                    f'[yellow] You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]'
+                )
                 rprint(encounter_text)
                 looted_rooms.add(room_name)
         else:
@@ -155,7 +168,9 @@ def room_encounter(room_name):
         if room_name not in fought_rooms:
             enemy_class= random.choice(enemies)
             enemy= enemy_class()
-            encounter_text= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+            encounter_text= (
+                f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+            )
             rprint(encounter_text)
             result= fight_enemy(player, enemy)
             if result== 'win':
@@ -173,7 +188,9 @@ def room_encounter(room_name):
             if choice== 'enemy':
                 enemy_class= random.choice(enemies)
                 enemy= enemy_class()
-                encounter_text= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+                encounter_text= (
+                    f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]'
+                )
                 rprint(encounter_text)
                 result= fight_enemy(player, enemy)
                 if result== 'win':
@@ -196,7 +213,9 @@ def room_encounter(room_name):
             for enemy_class in enemy_classes:
                 enemy= enemy_class()
                 enemies_to_fight.append(enemy)
-                encounter_text+= f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]\n'
+                encounter_text+= (
+                    f'[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]\n'
+                )
 
             rprint(encounter_text.strip())
             for enemy in enemies_to_fight:
@@ -233,7 +252,12 @@ def end_game():
         rprint('[dark green]You didn\'t collect any loot.[/dark green]')
 
 
-    choice= Prompt.ask('\nWould you like to [bold]play again?[/bold]', choices=['Yes', 'No'], default='No').capitalize()
+    choice = Prompt.ask(
+    '\nWould you like to [bold]play again?[/bold]',
+    choices=['Yes', 'No'],
+    default='No'
+    ).capitalize()
+
     if choice== 'Yes':
         return True
 
@@ -251,7 +275,16 @@ def game_loop():
     '''
 
 
-    encounter_rooms= ['West Wing', 'Library', 'Dining Hall', 'Bedroom', 'Galley', 'Cupboard', 'Bedroom Cupboard']
+    encounter_rooms = [
+        'West Wing', 
+        'Library', 
+        'Dining Hall', 
+        'Bedroom', 
+        'Galley', 
+        'Cupboard', 
+        'Bedroom Cupboard'
+    ]
+
     current_room= 'Main Hall'
     while True:
         if current_room== 'Exit':
@@ -268,7 +301,10 @@ def game_loop():
             result = room_encounter(current_room)
             if result is False:
                 break
-        move= Prompt.ask('What direction do you wish to move? (or type Quit to exit, or Inventory to check)').capitalize()
+        move = Prompt.ask(
+            'What direction do you wish to move? (or type Quit to exit, or Inventory to check)'
+        ).capitalize()
+
 
         if move== 'Inventory':
             show_inv()
