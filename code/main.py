@@ -74,7 +74,7 @@ def show_room(room_name):
     exits= ', '.join(room['exits'].keys())
     rprint(Panel(
         f'[bright_blue]{room.get("display_name", room_name)}[/bright_blue]\n\n'
-        f'{room['description']}\n\n'
+        f'{room["description"]}\n\n'
         f'[grey66]Exits:[/grey66]{exits}',
         title='Room Info'
     ))

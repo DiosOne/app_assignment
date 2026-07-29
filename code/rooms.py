@@ -50,6 +50,31 @@ rooms= {
         'exits':{'East': 'Bedroom'}
     },
 
+    'room-1':{
+        'description': 'An empty stone room waits in silence.',
+        'exits':{}
+    },
+
+    'room-2':{
+        'description': 'An empty stone room waits in silence.',
+        'exits':{}
+    },
+
+    'room-3':{
+        'description': 'An empty stone room waits in silence.',
+        'exits':{}
+    },
+
+    'room-4':{
+        'description': 'An empty stone room waits in silence.',
+        'exits':{}
+    },
+
+    'room-5':{
+        'description': 'An empty stone room waits in silence.',
+        'exits':{}
+    },
+
     'Exit':{
         'description': 'You have survived the dungeon!',
         'exits':{}
