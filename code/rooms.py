@@ -37,7 +37,7 @@ rooms= {
 
     'Galley':{
         'description': 'A large hearth and stone benches fill the room',
-        'exits':{'North': 'Exit', 'South': 'Dining Hall'}
+        'exits':{'North': 'Exit', 'West': 'Dining Hall'}
     },
 
     'Cupboard':{
