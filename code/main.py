@@ -272,5 +272,4 @@ def game_loop():
 
 if __name__== '__main__':
     game_loop()
-
-    # sort out the readme and notes
+    

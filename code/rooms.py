@@ -41,7 +41,7 @@ rooms= {
     },
 
     'Dining Hall':{
-        'description': 'A large dinning table sits in the center of the room, lit by a chandelier',
+        'description': 'A large dinning table sits in the center of the room, lit by a grandiose chandelier',
         'exits':{'North':'Scullery', 'East':'East Wing', 'West':'West Wing', 'Northeast':'Chapel', 'Northwest':'Armoury'}
     },
 
