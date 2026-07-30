@@ -9,7 +9,6 @@ __pycache__/
 # environment folders
 env/
 
-
 # OS or editor-specific junk
 .DS_Store
 Thumbs.db
@@ -19,3 +18,7 @@ test_rich.py
 
 # venv
 *venv
+
+# docs
+notes.txt
+
