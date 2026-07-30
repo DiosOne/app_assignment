@@ -55,6 +55,19 @@ encounter_table = {
     'Treasury':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_3_enemies}
 }
 
+direction_shortcuts = {
+    'North':'N',
+    'Northeast':'NE',
+    'East':'E',
+    'Southeast':'SE',
+    'South':'S',
+    'Southwest':'SW',
+    'West':'W',
+    'Northwest':'NW'
+}
+
+shortcut_directions = {shortcut:direction for direction, shortcut in direction_shortcuts.items()}
+
 def choose_player_class():
     '''
     Prompts the player to choose a character class.
@@ -92,13 +105,36 @@ def show_room(room_name):
     :type room_name: str
     '''
     room= rooms[room_name]
-    exits= ', '.join(room['exits'].keys())
+    exits= ', '.join(
+        f'{direction}({direction_shortcuts.get(direction, direction)})'
+        for direction in room['exits'].keys()
+    )
     rprint(Panel(
         f'[bright_blue]{room.get("display_name", room_name)}[/bright_blue]\n\n'
         f'{room["description"]}\n\n'
         f'[grey66]Exits:[/grey66]{exits}',
         title='Room Info'
     ))
+
+def normalize_move(move):
+    '''
+    Converts full direction names and direction shortcuts into room exit keys.
+
+    :param move: Player movement input.
+    :type move: str
+    :return: Normalized movement command.
+    :rtype: str
+    '''
+
+    move = move.strip()
+    if move.lower() == 'inventory':
+        return 'Inventory'
+    if move.lower() == 'quit':
+        return 'Quit'
+
+    direction = move.capitalize()
+    shortcut = move.upper()
+    return shortcut_directions.get(shortcut, direction)
 
 def spawn_enemy_and_fight(room_name, enemy_classes):
     """
@@ -237,7 +273,8 @@ def game_loop():
 
         move = Prompt.ask(
             'What direction do you wish to move? (or type Quit to exit, or Inventory to check)'
-        ).capitalize()
+        )
+        move = normalize_move(move)
 
         if move == 'Inventory':
             show_inv()

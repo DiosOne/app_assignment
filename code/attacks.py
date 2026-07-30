@@ -53,25 +53,31 @@ def format_damage_prompt(damage):
         return damage
     return parts[0] + ''.join(f'(+{part})' for part in parts[1:])
 
-def prompt_damage_roll(attack):
+def prompt_damage_roll(attack, attack_number=1, attack_total=1):
     '''
     Prompts the player to roll damage for a successful attack.
 
     :param attack: Attack data for the successful attack.
     :type attack: dict
+    :param attack_number: Current attack number for multi-attack abilities.
+    :type attack_number: int
+    :param attack_total: Total number of attacks for the chosen ability.
+    :type attack_total: int
     :return: Total damage rolled.
     :rtype: int
     '''
 
     while True:
+        attack_label = attack['name']
+        if attack_total > 1:
+            attack_label = f'{attack_label} {attack_number}/{attack_total}'
+
         rprint(
-            f'Your [bold]{attack["name"]}[/bold] attack hits! '
+            f'Your [bold]{attack_label}[/bold] attack hits! '
             f'Roll a [bold]{format_damage_prompt(attack["damage"])}[/bold]!'
         )
-        choice = input('Press Space to Roll: ')
-        if choice == ' ':
-            return roll_damage(attack['damage'])
-        rprint('[grey66]Press Space to roll the correct damage dice.[/grey66]')
+        input(f'Press Enter to Roll {format_damage_prompt(attack["damage"])}: ')
+        return roll_damage(attack['damage'])
 
 def choose_player_attack(player):
     '''
@@ -138,14 +144,18 @@ def fight_enemy(player, enemy):
             rprint('Invalid Attack. Please choose one of the listed attacks')
             continue
 
-        for _ in range(player_attack.get('times', 1)):
+        attack_total = player_attack.get('times', 1)
+        for attack_number in range(1, attack_total + 1):
             attack_roll= dice_roll('d20') + player_attack['hit_bonus']
 
-            rprint(f'Attack Roll: {attack_roll}')
+            if attack_total > 1:
+                rprint(f'Attack Roll {attack_number}/{attack_total}: {attack_roll}')
+            else:
+                rprint(f'Attack Roll: {attack_roll}')
             rprint(f'You use {player_attack["name"]} against the {enemy.name}')
 
             if attack_roll >= enemy.armour:
-                damage_roll= prompt_damage_roll(player_attack)
+                damage_roll= prompt_damage_roll(player_attack, attack_number, attack_total)
                 enemy.health-= damage_roll
                 rprint(
                     f'[green]You do {damage_roll} points of damage to the '
