@@ -63,5 +63,5 @@ python main.py
 ## License
 
 This project is for non-commercial, educational use.  
-All original code by Dom Andrewartha aka DiosOne &copy; 2025  
+All original code by Dom Andrewartha. DiosOne dMt &copy; 2025  
 Third-party package `rich` is used under the MIT License.
