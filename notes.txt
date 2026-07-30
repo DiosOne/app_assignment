@@ -145,3 +145,22 @@ before removing the total from the players Hit Points.
 ---
 
 
+drop  scorching ray +5 to like +3?
+
+fixpathing so guard post doesnt go straight to bedroom and servants doesnt go to library.
+
+have a 'Look' function for end of fights - show available directions, make inv a shorthand to check inventory
+
+adjust fighter attacks
+
+fix this - Would you like to play again? [Yes/No] (No): y
+Please select one of the available options
+
+Would you like to play again? [Yes/No] (No): yes
+Please select one of the available options
+
+Would you like to play again? [Yes/No] (No): Yes
+What direction do you wish to move? (or type Quit to exit, or Inventory to check):
+
+on death and restart - go back to the first room and drop loot?? or roguelike it..
+also need some health potions and a mechanic to use them. maybe 3 sizes? 2d12, 2d12+d10, 2d20+d8. or fixed amounts??
