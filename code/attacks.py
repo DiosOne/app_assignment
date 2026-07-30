@@ -38,6 +38,41 @@ def roll_damage(damage):
             total += int(part)
     return total
 
+def format_damage_prompt(damage):
+    '''
+    Formats damage dice for display in player roll prompts.
+
+    :param damage: Dice expression to format.
+    :type damage: str
+    :return: Formatted damage expression.
+    :rtype: str
+    '''
+
+    parts = damage.split('+')
+    if len(parts) == 1:
+        return damage
+    return parts[0] + ''.join(f'(+{part})' for part in parts[1:])
+
+def prompt_damage_roll(attack):
+    '''
+    Prompts the player to roll damage for a successful attack.
+
+    :param attack: Attack data for the successful attack.
+    :type attack: dict
+    :return: Total damage rolled.
+    :rtype: int
+    '''
+
+    while True:
+        rprint(
+            f'Your [bold]{attack["name"]}[/bold] attack hits! '
+            f'Roll a [bold]{format_damage_prompt(attack["damage"])}[/bold]!'
+        )
+        choice = input('Press Space to Roll: ')
+        if choice == ' ':
+            return roll_damage(attack['damage'])
+        rprint('[grey66]Press Space to roll the correct damage dice.[/grey66]')
+
 def choose_player_attack(player):
     '''
     Prompts the player to choose one of their available attacks.
@@ -110,7 +145,7 @@ def fight_enemy(player, enemy):
             rprint(f'You use {player_attack["name"]} against the {enemy.name}')
 
             if attack_roll >= enemy.armour:
-                damage_roll= roll_damage(player_attack['damage'])
+                damage_roll= prompt_damage_roll(player_attack)
                 enemy.health-= damage_roll
                 rprint(
                     f'[green]You do {damage_roll} points of damage to the '
@@ -137,12 +172,16 @@ def fight_enemy(player, enemy):
             )
 
             if enemy_attack_roll>= player.armour:
+                rprint(
+                    f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] '
+                    f'rolls {enemy_attack["damage"]} for damage.'
+                )
                 enemy_damage= roll_damage(enemy_attack['damage'])
 
-                player.health-= enemy_damage
                 rprint(
                     f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}]'
                     f'[/bold] does {enemy_damage} damage![/red]')
+                player.health-= enemy_damage
             else:
                 rprint(
                     f'[blue]The [bold][{enemy.colour}]{enemy.name}'

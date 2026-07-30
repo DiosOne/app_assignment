@@ -140,3 +140,8 @@ If the total is higher than the opponents Armour Class the attack succeeds.
 On a successful attack, the player wil be prompted to roll the appropriate dice on the screen.
 If the enemy attack is successful, display the outcome of their roll/s on screen with a '*enemy* does [x] amount of damage' message,
 before removing the total from the players Hit Points.
+
+
+---
+
+
