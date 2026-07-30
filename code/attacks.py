@@ -76,7 +76,10 @@ def prompt_damage_roll(attack, attack_number=1, attack_total=1):
             f'Your [bold]{attack_label}[/bold] attack hits! '
             f'Roll a [bold]{format_damage_prompt(attack["damage"])}[/bold]!'
         )
-        input(f'Press Enter to Roll {format_damage_prompt(attack["damage"])}: ')
+        input(
+            f'Press Enter to Roll {format_damage_prompt(attack["damage"])} '
+            f'for {attack_label}: '
+        )
         return roll_damage(attack['damage'])
 
 def choose_player_attack(player):
@@ -145,8 +148,11 @@ def fight_enemy(player, enemy):
             continue
 
         attack_total = player_attack.get('times', 1)
+        attack_results = []
         for attack_number in range(1, attack_total + 1):
             attack_roll= dice_roll('d20') + player_attack['hit_bonus']
+            attack_hits = attack_roll >= enemy.armour
+            attack_results.append((attack_number, attack_roll, attack_hits))
 
             if attack_total > 1:
                 rprint(f'Attack Roll {attack_number}/{attack_total}: {attack_roll}')
@@ -154,7 +160,13 @@ def fight_enemy(player, enemy):
                 rprint(f'Attack Roll: {attack_roll}')
             rprint(f'You use {player_attack["name"]} against the {enemy.name}')
 
-            if attack_roll >= enemy.armour:
+            if attack_hits:
+                rprint('[green]Your attack hits![/green]')
+            else:
+                rprint('[grey66]Your attack missed.[/grey66]')
+
+        for attack_number, attack_roll, attack_hits in attack_results:
+            if attack_hits:
                 damage_roll= prompt_damage_roll(player_attack, attack_number, attack_total)
                 enemy.health-= damage_roll
                 rprint(
@@ -162,10 +174,12 @@ def fight_enemy(player, enemy):
                     f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
                 )
 
-            else:
-                rprint('Your attack missed')
-
             if enemy.health<= 0:
+                if attack_number < attack_total:
+                    rprint(
+                        f'[grey66]The remaining {player_attack["name"]} attacks '
+                        f'have no target.[/grey66]'
+                    )
                 rprint(
                     f'[green]You defeated the [bold]'
                     f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
