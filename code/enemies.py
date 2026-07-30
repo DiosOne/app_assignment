@@ -143,7 +143,7 @@ class BoneDevil(Enemy):
     def __init__(self):
         super().__init__(
             name="Bone Devil",
-            health=45,
+            health=32,
             armour=19,
             attacks=[
                 {'name':'Claw', 'hit_bonus':8, 'damage':'1d8+4'},
