@@ -38,11 +38,46 @@ def roll_damage(damage):
             total += int(part)
     return total
 
+def choose_player_attack(player):
+    '''
+    Prompts the player to choose one of their available attacks.
+
+    :param player: The player character choosing an attack.
+    :type player: Adventurer or subclass instance.
+    :return: The selected attack, or 'quit' if the player flees.
+    :rtype: dict or str
+    '''
+
+    rprint('[bold]Choose your attack:[/bold]')
+    for index, attack in enumerate(player.attacks, start=1):
+        repeat_text = ''
+        if attack.get('times', 1) > 1:
+            repeat_text = f" x{attack['times']}"
+        rprint(
+            f"{index}. {attack['name']} "
+            f"(+{attack['hit_bonus']} to hit, {attack['damage']} damage{repeat_text})"
+        )
+
+    choice = input('Attack or type "quit" to flee: ').lower()
+    if choice == 'quit':
+        return 'quit'
+
+    if choice.isdigit():
+        attack_index = int(choice) - 1
+        if 0 <= attack_index < len(player.attacks):
+            return player.attacks[attack_index]
+
+    for attack in player.attacks:
+        if choice == attack['name'].lower():
+            return attack
+
+    return None
+
 def fight_enemy(player, enemy):
     '''
     Conducts a turn-based fight sequence between the player and an enemy.
 
-    The player chooses attack types (light or heavy) or can flee.
+    The player chooses an available attack or can flee.
     Each attack involves dice rolls to determine hits and damage.
     The enemy attacks back automatically after the player's turn.
     The fight continues until either combatant's health reaches zero or the player flees.
@@ -58,43 +93,39 @@ def fight_enemy(player, enemy):
     '''
 
     while player.health > 0 and enemy.health > 0:
-        attack_type= input('Choose your attack (light or heavy) or type "quit" to flee: ').lower()
+        player_attack = choose_player_attack(player)
 
-        if attack_type == 'quit':
+        if player_attack == 'quit':
             rprint('[yellow]You fled the fight![/yellow]')
             return 'quit'
 
-        if attack_type== 'light':
-            attack_roll= dice_roll('d20') + 2
-            damage_roll= dice_roll(f'd{player.attack1}')
-
-        elif attack_type== "heavy":
-            attack_roll= dice_roll('d20')
-            damage_roll= dice_roll(f'd{player.attack2}') + 2
-        else:
-            rprint('Invalid Attack. Please choose light or heavy')
+        if player_attack is None:
+            rprint('Invalid Attack. Please choose one of the listed attacks')
             continue
 
+        for _ in range(player_attack.get('times', 1)):
+            attack_roll= dice_roll('d20') + player_attack['hit_bonus']
 
-        rprint(f'Attack Roll: {attack_roll}')
-        rprint(f'You attack the {enemy.name}')
+            rprint(f'Attack Roll: {attack_roll}')
+            rprint(f'You use {player_attack["name"]} against the {enemy.name}')
 
-        if attack_roll >= enemy.armour:
-            enemy.health-= damage_roll
-            rprint(
-                f'[green]You do {damage_roll} points of damage to the '
-                f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
-            )
+            if attack_roll >= enemy.armour:
+                damage_roll= roll_damage(player_attack['damage'])
+                enemy.health-= damage_roll
+                rprint(
+                    f'[green]You do {damage_roll} points of damage to the '
+                    f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
+                )
 
-        else:
-            rprint('Your attack missed')
+            else:
+                rprint('Your attack missed')
 
-        if enemy.health<= 0:
-            rprint(
-                f'[green]You defeated the [bold]'
-                f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
-            )
-            return 'win'
+            if enemy.health<= 0:
+                rprint(
+                    f'[green]You defeated the [bold]'
+                    f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
+                )
+                return 'win'
 
         enemy_attack= random.choice(enemy.attacks)
         for _ in range(enemy_attack.get('times', 1)):

@@ -9,18 +9,15 @@ class Adventurer:
     :type health: int
     :param armour: Armour class (defense rating).
     :type armour: int
-    :param light_attack: Maximum damage for light attacks.
-    :type light_attack: int
-    :param heavy_attack: Maximum damage for heavy attacks.
-    :type heavy_attack: int
+    :param attacks: Attack options available to the adventurer.
+    :type attacks: list
     :param colour: Display colour for the character's name in terminal output.
     :type colour: str
     '''
-    def __init__(self, health, armour, light_attack, heavy_attack, colour='white'):
+    def __init__(self, health, armour, attacks, colour='white'):
         self.health = health
         self.armour = armour
-        self.attack1 = light_attack
-        self.attack2 = heavy_attack
+        self.attacks = attacks
         self.colour = colour
 
 class Fighter(Adventurer):
@@ -33,10 +30,12 @@ class Fighter(Adventurer):
     '''
     def __init__(self):
         super().__init__(
-            health=160,
-            armour=13,
-            light_attack=6,
-            heavy_attack=10,
+            health=95,
+            armour=17,
+            attacks=[
+                {'name':'Longsword', 'hit_bonus':5, 'damage':'1d10+3'},
+                {'name':'Heavy Crossbow', 'hit_bonus':3, 'damage':'1d10+1'}
+            ],
             colour='bold red'
             )
 
@@ -50,10 +49,12 @@ class Mage(Adventurer):
     '''
     def __init__(self):
         super().__init__(
-            health=100,
-            armour=10,
-            light_attack=8,
-            heavy_attack=16,
+            health=80,
+            armour=15,
+            attacks=[
+                {'name':'Fire Bolt', 'hit_bonus':6, 'damage':'1d10'},
+                {'name':'Scorching Ray', 'hit_bonus':6, 'damage':'2d6', 'times':3}
+            ],
             colour='bold purple'
             )
 
@@ -67,10 +68,12 @@ class Ranger(Adventurer):
     '''
     def __init__(self):
         super().__init__(
-            health=200,
-            armour=15,
-            light_attack=4,
-            heavy_attack=8,
+            health=90,
+            armour=16,
+            attacks=[
+                {'name':'Shortsword', 'hit_bonus':4, 'damage':'1d6+2', 'times':2},
+                {'name':'Longbow', 'hit_bonus':4, 'damage':'1d8+2', 'times':2}
+            ],
             colour='bold green'
             )
 
@@ -84,7 +87,10 @@ def show_stats(character):
     rprint('-' * 10)
     rprint(f'Health: {character.health}')
     rprint(f'Armour Class: {character.armour}')
-    rprint(f'Light Attack max damage: {character.attack1}')
-    rprint(f'Heavy Attack max damage: {character.attack2}')
+    for attack in character.attacks:
+        rprint(
+            f"{attack['name']}: +{attack['hit_bonus']} to hit, "
+            f"{attack['damage']} damage"
+        )
     rprint('*' * 10)
     rprint()
