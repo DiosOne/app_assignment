@@ -9,9 +9,24 @@ Used for navigation and display throughout the game.
 '''
 
 rooms= {
+    'Entrance Hall':{
+        'description': 'a description goes here',
+        'exits':{'North':'Main Hall', 'Northeast':'Servants Quarters', 'Northwest': 'Guard Post'}
+    },
+    
     'Main Hall':{
         'description': 'You see a grand entrance hall, chandeliers hanging from the ceiling',
-        'exits':{'North': 'Dining Hall', 'East':'Library', 'West': 'West Wing'}
+        'exits':{'North':'Dining Hall', 'East':'Servants Quarters', 'West':'Guard Post', 'Northeast':'East Wing', 'Northwest':'West Wing'}
+    },
+    
+    'Servants Quarters':{
+        'description': 'a description goes here',
+        'exits':{'North':'East Wing', 'West':'Main Hall', 'Northwest':'Dining Hall'}
+    },
+    
+    'Guard Post':{
+        'description':'a description goes here',
+        'exits':{'North':'', 'East':'', 'Northeast':''}
     },
 
     'West Wing':{
@@ -35,24 +50,9 @@ rooms= {
         'exits':{'East': 'Dining Hall', 'West': 'Bedroom Cupboard'}
     },
 
-    'Galley':{
+    'Scullery':{
         'description': 'A large hearth and stone benches fill the room',
         'exits':{'North': 'Exit', 'West': 'Dining Hall'}
-    },
-
-    'Cupboard':{
-        'description': 'A small cupboard containing a chest',
-        'exits':{'East': 'West Wing'}
-    },
-
-    'Bedroom Cupboard':{
-        'description': 'A small cupboard containing a chest',
-        'exits':{'East': 'Bedroom'}
-    },
-
-    'room-1':{
-        'description': 'An empty stone room waits in silence.',
-        'exits':{}
     },
 
     'room-2':{
