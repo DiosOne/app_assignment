@@ -10,7 +10,7 @@ Used for navigation and display throughout the game.
 
 rooms= {
     'Entrance Hall':{
-        'description': 'a description goes here',
+        'description': 'A cold stone entrance hall with heavy doors behind you and torchlight ahead.',
         'exits':{'North':'Main Hall', 'Northeast':'Servants Quarters', 'Northwest': 'Guard Post'}
     },
     
@@ -20,59 +20,64 @@ rooms= {
     },
     
     'Servants Quarters':{
-        'description': 'a description goes here',
-        'exits':{'North':'East Wing', 'West':'Main Hall', 'Northwest':'Dining Hall'}
+        'description': 'Narrow bunks and old footlockers line the walls of this cramped servants quarters.',
+        'exits':{'North':'East Wing', 'West':'Main Hall', 'Northwest':'Dining Hall', 'Northeast':'Library'}
     },
     
     'Guard Post':{
-        'description':'a description goes here',
-        'exits':{'North':'', 'East':'', 'Northeast':''}
+        'description':'Weapon racks, dented shields, and a worn watch table fill the old guard post.',
+        'exits':{'North':'West Wing', 'East':'Main Hall', 'Northeast':'Dining Hall', 'Northwest':'Bedroom'}
     },
 
     'West Wing':{
         'description':  
             'You are in a medium sized room, with storage shelves and torches on the walls',
-        'exits':{'North':'Dining Hall', 'East':'Main Hall', 'West':'Cupboard'}
+        'exits':{'North':'Armoury', 'East':'Dining Hall', 'West':'Bedroom', 'Northeast':'Scullery'}
     },
 
     'Library':{
         'description': 'A small room with dusty bookshelves lit by numerous cadelabras',
-        'exits':{'West':'Main Hall'}
+        'exits':{'West':'East Wing', 'Northwest':'Chapel'}
     },
 
     'Dining Hall':{
         'description': 'A large dinning table sits in the center of the room, lit by a chandelier',
-        'exits':{'North':'Bedroom', 'East':'Galley', 'South':'Main Hall', 'West':'West Wing'}
+        'exits':{'North':'Scullery', 'East':'East Wing', 'West':'West Wing', 'Northeast':'Chapel', 'Northwest':'Armoury'}
     },
 
     'Bedroom':{
         'description': 'A cosy room  with a large bed in the center with torches on the walls',
-        'exits':{'East':'Dining Hall', 'West':'Bedroom Cupboard'}
+        'exits':{'East':'West Wing', 'Northeast':'Armoury'}
+    },
+
+    'East Wing':{
+        'description': 'A long eastern corridor with cracked portraits and faded carpet underfoot.',
+        'exits':{'North':'Chapel', 'East':'Library', 'West':'Dining Hall', 'Northwest':'Scullery'}
     },
 
     'Scullery':{
-        'description': 'A large hearth and stone benches fill the room',
-        'exits':{'North':'Exit', 'West':'Dining Hall'}
+        'description': 'A large hearth, stained stone benches, and stacks of blackened pots fill the room.',
+        'exits':{'North':'Exit', 'East':'Chapel', 'West':'Armoury', 'Northeast':'Treasury', 'Northwest':'Observatory'}
     },
 
-    'room-2':{
-        'description': 'An empty stone room waits in silence.',
-        'exits':{}
+    'Armoury':{
+        'description': 'Rusting blades, battered helmets, and broken spear shafts are stacked against the walls.',
+        'exits':{'North':'Observatory', 'East':'Scullery'}
     },
 
-    'room-3':{
-        'description': 'An empty stone room waits in silence.',
-        'exits':{}
+    'Chapel':{
+        'description': 'A quiet chapel with cracked pews, melted candles, and a cold stone altar.',
+        'exits':{'North':'Treasury', 'West':'Scullery'}
     },
 
-    'room-4':{
-        'description': 'An empty stone room waits in silence.',
-        'exits':{}
+    'Observatory':{
+        'description': 'A domed chamber where dusty star charts surround a tarnished brass telescope.',
+        'exits':{'East':'Treasury', 'Northeast':'Exit'}
     },
 
-    'room-5':{
-        'description': 'An empty stone room waits in silence.',
-        'exits':{}
+    'Treasury':{
+        'description': 'Locked chests and empty coin racks suggest this room once held great wealth.',
+        'exits':{'West':'Observatory', 'Northwest':'Exit'}
     },
 
     'Exit':{
