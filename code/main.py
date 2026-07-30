@@ -118,10 +118,11 @@ def spawn_enemy_and_fight(room_name, enemy_classes):
     rprint(f"[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]")
     result = fight_enemy(player, enemy)
     if result == 'win':
-        drop = random_enemy()
-        add_to_inv(drop[0], drop[1])
-        collected_loot.append(drop)
-        rprint(f"[bright_green]The enemy dropped {drop[1]} x {drop[0]}![/bright_green]")
+        drops = random_enemy(enemy.name)
+        for item_name, quantity in drops:
+            add_to_inv(item_name, quantity)
+            collected_loot.append((item_name, quantity))
+            rprint(f"[bright_green]The enemy dropped {quantity} x {item_name}![/bright_green]")
     return result
 
 def spawn_enemies_and_fight(room_name):
