@@ -1,0 +1,20 @@
+# byte-compiled/cached files
+__pycache__/
+*.py[cod]
+
+# VS Code settings
+.vscode/
+
+# environment folders
+env/
+
+
+# OS or editor-specific junk
+.DS_Store
+Thumbs.db
+
+# test scripts
+test_rich.py
+
+# venv
+*venv
