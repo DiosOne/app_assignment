@@ -7,7 +7,7 @@ find loot, and progress toward an exit.
 
 Features:
 - Class selection: Fighter, Mage, or Ranger.
-- Random enemy encounters and chest loot.
+- Random enemy encounters and enemy loot drops.
 - Inventory management and turn-based combat.
 - Rich text output for enhanced terminal display.
 
@@ -24,15 +24,36 @@ from rich import print as rprint
 from rich.panel import Panel
 from rich.prompt import Prompt
 from advent import Fighter, Mage, Ranger, show_stats
-from enemies import Goblin, Skeleton, Ratking
-from loot_table import random_chest, random_enemy
+from enemies import BoneDevil, Ghost, Goblin, Minotaur, Ratking, Skeleton, Thug, Zombie
+from loot_table import random_enemy
 from attacks import fight_enemy
 from inventory import add_to_inv, show_inv
 
 
 collected_loot= []
-looted_rooms= set()
 fought_rooms= set()
+rank_1_enemies = [Goblin, Skeleton, Ratking, Zombie]
+rank_2_enemies = [Zombie, Thug, Ghost]
+rank_3_enemies = [Thug, Ghost, BoneDevil, Minotaur]
+
+encounter_table = {
+    'Guard Post':{'enemy_count':(2, 5), 'enemy_classes':rank_1_enemies},
+    'Main Hall':{'enemy_count':(2, 5), 'enemy_classes':rank_1_enemies},
+    'Servants Quarters':{'enemy_count':(2, 5), 'enemy_classes':rank_1_enemies},
+
+    'Bedroom':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'West Wing':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'Dining Hall':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'East Wing':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'Library':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+
+    'Armoury':{'enemy_count':(3, 6), 'enemy_classes':rank_2_enemies + rank_3_enemies},
+    'Scullery':{'enemy_count':(3, 6), 'enemy_classes':rank_2_enemies + rank_3_enemies},
+    'Chapel':{'enemy_count':(3, 6), 'enemy_classes':rank_2_enemies + rank_3_enemies},
+
+    'Observatory':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_3_enemies},
+    'Treasury':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_3_enemies}
+}
 
 def choose_player_class():
     '''
@@ -79,10 +100,9 @@ def show_room(room_name):
         title='Room Info'
     ))
 
-def spawn_enemy_and_fight(room_name):
+def spawn_enemy_and_fight(room_name, enemy_classes):
     """
     Spawns a random enemy and initiates combat. If the player wins, they receive loot.
-    Marks the room as fought to prevent repeat encounters.
 
     Args:
         room_name (str): The name of the room where the encounter is happening.
@@ -93,7 +113,7 @@ def spawn_enemy_and_fight(room_name):
                      or None if no combat occurs.
     """
 
-    enemy_class = random.choice([Goblin, Skeleton, Ratking])
+    enemy_class = random.choice(enemy_classes)
     enemy = enemy_class()
     rprint(f"[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]")
     result = fight_enemy(player, enemy)
@@ -102,93 +122,54 @@ def spawn_enemy_and_fight(room_name):
         add_to_inv(drop[0], drop[1])
         collected_loot.append(drop)
         rprint(f"[bright_green]The enemy dropped {drop[1]} x {drop[0]}![/bright_green]")
-        fought_rooms.add(room_name)
     return result
 
-def spawn_chest_and_loot(room_name):
+def spawn_enemies_and_fight(room_name):
     """
-    Spawns a chest with loot in the specified room if not already looted.
-    Adds the loot to the player's inventory and marks the room as looted.
+    Spawns the room's enemy group and fights each enemy one at a time.
+    Marks the room as fought after every enemy in the room has been defeated.
 
     Args:
-        room_name (str): The name of the room where the chest is located.
+        room_name (str): The name of the room where the encounter is happening.
 
     Returns:
-        tuple or None: Returns the loot item and quantity if loot is found,
-                       otherwise None if the chest has already been looted.
+        str or bool or None: Returns 'win' if all enemies are defeated,
+                             'quit' if the player flees,
+                             False if the player dies,
+                             or None if the room was already cleared.
     """
 
-    loot_found = random_chest()
-    add_to_inv(loot_found[0], loot_found[1])
-    collected_loot.append(loot_found)
-    looted_rooms.add(room_name)
-    rprint(f"[yellow]You found {loot_found[1]} x {loot_found[0]} in a chest![/yellow]")
-    return loot_found
+    encounter = encounter_table[room_name]
+    min_enemies, max_enemies = encounter['enemy_count']
+    enemy_count = random.randint(min_enemies, max_enemies)
+
+    rprint(f"[red]You hear {enemy_count} enemies nearby![/red]")
+    for _ in range(enemy_count):
+        result = spawn_enemy_and_fight(room_name, encounter['enemy_classes'])
+        if result != 'win':
+            return result
+
+    fought_rooms.add(room_name)
+    return 'win'
 
 def room_encounter(room_name):
     """
-    Handles encounters in the specified room, including enemy fights, loot chests,
-    or empty rooms. Manages whether the room has been looted or cleared of enemies.
+    Handles encounters in the specified room, including enemy fights or empty rooms.
+    Manages whether the room has been cleared of enemies.
 
     Args:
         room_name (str): The name of the room where the encounter takes place.
 
     Returns:
-        tuple or None or bool: Returns loot found in the room (item, quantity) if any,
-                               None if no loot or enemy is present,
-                               or False if the player dies during combat.
+        None or bool: Returns None if no enemy is present,
+                      or False if the player dies during combat.
     """
 
-    if room_name in ['Cupboard', 'Bedroom Cupboard']:
-        if room_name not in looted_rooms:
-            return spawn_chest_and_loot(room_name)
-        rprint("[grey66]This chest is empty.[/grey66]")
-        return
-
-    if room_name in ['West Wing', 'Dining Hall', 'Bedroom']:
+    if room_name in encounter_table:
         if room_name not in fought_rooms:
-            if room_name == 'Bedroom' and random.choice(['enemy', 'empty']) == 'empty':
-                rprint("[grey66]The room is empty.[/grey66]")
-                return
-            result = spawn_enemy_and_fight(room_name)
+            result = spawn_enemies_and_fight(room_name)
             if result is False:
                 return False
-        else:
-            rprint("[grey66]This room is now empty.[/grey66]")
-        return
-
-    if room_name == 'Library':
-        if room_name not in fought_rooms and room_name not in looted_rooms:
-            encounter = random.choice(['enemy', 'chest', 'empty'])
-            if encounter == 'enemy':
-                result = spawn_enemy_and_fight(room_name)
-                if result is False:
-                    return False
-            elif encounter == 'chest':
-                return spawn_chest_and_loot(room_name)
-            else:
-                rprint("[grey66]The room is empty.[/grey66]")
-        else:
-            rprint("[grey66]The room is empty.[/grey66]")
-        return
-
-    if room_name == 'Galley':
-        if room_name not in fought_rooms:
-            enemies = random.sample([Goblin, Skeleton, Ratking], 2)
-            for enemy_class in enemies:
-                enemy = enemy_class()
-                rprint(
-                    f"[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]"
-                )
-                result = fight_enemy(player, enemy)
-                if result == 'win':
-                    drop = random_enemy()
-                    add_to_inv(drop[0], drop[1])
-                    collected_loot.append(drop)
-                    rprint(f"[bright_green]The enemy dropped {drop[1]} x {drop[0]}![/bright_green]")
-                elif result is False:
-                    return False
-            fought_rooms.add(room_name)
         else:
             rprint("[grey66]This room is now empty.[/grey66]")
         return
@@ -234,17 +215,15 @@ def game_loop():
     showing inventory, and restarting the game if the player survives and opts to play again.
     """
 
-    encounter_rooms = [
-        'West Wing', 'Library', 'Dining Hall',
-        'Bedroom', 'Galley', 'Cupboard', 'Bedroom Cupboard'
-    ]
+    encounter_rooms = list(encounter_table.keys())
 
-    current_room = 'Main Hall'
+    current_room = 'Entrance Hall'
     while True:
         if current_room == 'Exit':
             if end_game():
                 collected_loot.clear()
-                current_room = 'Main Hall'
+                fought_rooms.clear()
+                current_room = 'Entrance Hall'
                 continue
             else:
                 break

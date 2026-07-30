@@ -18,6 +18,26 @@ from dice_rolls import dice_roll
 from rich import print as rprint
 from rich.prompt import Prompt
 
+def roll_damage(damage):
+    '''
+    Rolls damage from a dice expression such as 1d6+2, 2d8, or 2d8+4+2d6.
+
+    :param damage: Dice expression to roll.
+    :type damage: str
+    :return: Total damage rolled.
+    :rtype: int
+    '''
+
+    total = 0
+    for part in damage.replace(' ', '').split('+'):
+        if 'd' in part:
+            dice_count, dice_sides = part.split('d')
+            for _ in range(int(dice_count)):
+                total += dice_roll(f'd{dice_sides}')
+        else:
+            total += int(part)
+    return total
+
 def fight_enemy(player, enemy):
     '''
     Conducts a turn-based fight sequence between the player and an enemy.
@@ -76,23 +96,29 @@ def fight_enemy(player, enemy):
             )
             return 'win'
 
-        enemy_attack_type= random.choice(['light', 'heavy'])
-        enemy_attack_roll= dice_roll('d20')
+        enemy_attack= random.choice(enemy.attacks)
+        for _ in range(enemy_attack.get('times', 1)):
+            enemy_attack_roll= dice_roll('d20') + enemy_attack['hit_bonus']
 
-        if enemy_attack_roll>= player.armour:
-            if enemy_attack_type== 'light':
-                enemy_damage= dice_roll(f'd{enemy.attack1}')
+            rprint(
+                f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] '
+                f'uses {enemy_attack["name"]}. Attack Roll: {enemy_attack_roll}'
+            )
+
+            if enemy_attack_roll>= player.armour:
+                enemy_damage= roll_damage(enemy_attack['damage'])
+
+                player.health-= enemy_damage
+                rprint(
+                    f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}]'
+                    f'[/bold] does {enemy_damage} damage![/red]')
             else:
-                enemy_damage= dice_roll(f'd{enemy.attack2}')
+                rprint(
+                    f'[blue]The [bold][{enemy.colour}]{enemy.name}'
+                    f'[/{enemy.colour}][/bold] misses![/blue]')
 
-            player.health-= enemy_damage
-            rprint(
-                f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}]'
-                f'[/bold] does {enemy_damage} damage![/red]')
-        else:
-            rprint(
-                f'[blue]The [bold][{enemy.colour}]{enemy.name}'
-                f'[/{enemy.colour}][/bold] misses![/blue]')
+            if player.health<= 0:
+                break
 
         if player.health<= 0:
             rprint('[bold][red]You Have Been Defeated![/red][/bold]')

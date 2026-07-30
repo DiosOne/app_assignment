@@ -76,7 +76,7 @@ rooms= {
     },
 
     'Treasury':{
-        'description': 'Locked chests and empty coin racks suggest this room once held great wealth.',
+        'description': 'Empty coin racks and broken lockboxes suggest this room once held great wealth.',
         'exits':{'West':'Observatory', 'Northwest':'Exit'}
     },
 
