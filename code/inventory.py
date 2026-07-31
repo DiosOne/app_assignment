@@ -12,10 +12,10 @@ Dependencies:
 
 from rich import print as rprint
 inventory = []
-max_carry_weight = 200
+max_carry_weight = 250
 
 item_weights = {
-    'Gold':1,
+    'Gold':0.1,
     'Ruby':3,
     'Rubies':3,
     'Emerald':3,

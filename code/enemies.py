@@ -146,8 +146,8 @@ class BoneDevil(Enemy):
             health=32,
             armour=16,
             attacks=[
-                {'name':'Claw', 'hit_bonus':8, 'damage':'1d8+4'},
-                {'name':'Sting', 'hit_bonus':8, 'damage':'2d8+4+2d6'}
+                {'name':'Claw', 'hit_bonus':8, 'damage':'1d6+4'},
+                {'name':'Sting', 'hit_bonus':8, 'damage':'1d8+4+1d6'}
             ],
             colour='bright_red'
         )
@@ -164,8 +164,8 @@ class Minotaur(Enemy):
             health=76,
             armour=14,
             attacks=[
-                {'name':'Greataxe', 'hit_bonus':6, 'damage':'2d12+4'},
-                {'name':'Gore', 'hit_bonus':6, 'damage':'2d8+4'}
+                {'name':'Greataxe', 'hit_bonus':6, 'damage':'2d8+4'},
+                {'name':'Gore', 'hit_bonus':6, 'damage':'1d8+4'}
             ],
             colour='red3'
         )

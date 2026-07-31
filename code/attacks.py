@@ -14,7 +14,10 @@ Dependencies:
 
 import random
 from dice_rolls import dice_roll
-from inventory import count_inv, remove_from_inv
+from inventory import (
+    count_inv, current_weight, drop_item, item_weight,
+    max_carry_weight, remove_from_inv, show_inv
+)
 from rich import print as rprint
 
 def roll_damage(damage):
@@ -101,11 +104,15 @@ def choose_player_attack(player):
             f"(+{attack['hit_bonus']} to hit, {attack['damage']} damage{repeat_text})"
         )
 
-    choice = input('Attack, "use" an item, or type "quit" to flee: ').lower()
+    choice = input('Attack, "use" an item, "inv", "drop", or type "quit" to flee: ').lower()
     if choice == 'quit':
         return 'quit'
     if choice in ['use', 'use item']:
         return 'use'
+    if choice in ['inventory', 'inv']:
+        return 'inventory'
+    if choice in ['drop', 'drop item']:
+        return 'drop'
 
     if choice.isdigit():
         attack_index = int(choice) - 1
@@ -117,6 +124,49 @@ def choose_player_attack(player):
             return attack
 
     return None
+
+def drop_inventory_item():
+    '''
+    Lets the player drop unwanted inventory items during combat.
+    '''
+
+    counted = count_inv()
+    if not counted:
+        rprint('[grey66]Your inventory is empty.[/grey66]')
+        return
+
+    items = list(counted.keys())
+    rprint('[bold]Choose an item to drop:[/bold]')
+    for index, item in enumerate(items, start=1):
+        rprint(f'{index}. {item} x {counted[item]} ({item_weight(item)} weight each)')
+
+    choice = input('Item number or name: ').strip().lower()
+    selected_item = None
+    if choice.isdigit():
+        item_index = int(choice) - 1
+        if 0 <= item_index < len(items):
+            selected_item = items[item_index]
+    else:
+        for item in items:
+            if choice == item.lower():
+                selected_item = item
+
+    if selected_item is None:
+        rprint('[red]Invalid item choice.[/red]')
+        return
+
+    quantity_choice = input(f'How many {selected_item} do you want to drop? ').strip()
+    if quantity_choice.isdigit():
+        quantity = int(quantity_choice)
+    else:
+        quantity = 1
+
+    dropped = drop_item(selected_item, quantity)
+    if dropped:
+        rprint(f'[yellow]You dropped {dropped} x {selected_item}.[/yellow]')
+        rprint(f'[cyan]Carry Weight: {current_weight()}/{max_carry_weight}[/cyan]')
+    else:
+        rprint('[red]You do not have that item.[/red]')
 
 def use_health_potion(player):
     '''
@@ -215,6 +265,14 @@ def fight_enemy(player, enemy):
         if player_attack == 'quit':
             rprint('[yellow]You fled the fight![/yellow]')
             return 'quit'
+
+        if player_attack == 'inventory':
+            show_inv(player)
+            continue
+
+        if player_attack == 'drop':
+            drop_inventory_item()
+            continue
 
         used_item = False
         if player_attack == 'use':

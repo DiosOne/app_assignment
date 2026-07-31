@@ -198,7 +198,9 @@ def show_room(room_name):
         for direction in room['exits'].keys()
     )
     search_hint = ''
-    if room_name not in searched_rooms and room_name in searchable_rooms:
+    if room_name in searched_rooms or room_name in fought_rooms:
+        search_hint = '\n\n[grey66]This room is now empty.[/grey66]'
+    elif room_name in searchable_rooms:
         search_hint = '\n\n[grey66]Maybe you should look around this room.[/grey66]'
     rprint(Panel(
         f'[bright_blue]{room.get("display_name", room_name)}[/bright_blue]\n\n'
@@ -251,19 +253,29 @@ def add_loot(drops, source):
 
     for item_name, quantity in drops:
         accepted = 0
-        for _ in range(quantity):
+        remaining = quantity
+        while remaining > 0:
             if can_carry(item_name):
                 add_to_inv(item_name)
                 collected_loot.append((item_name, 1))
                 accepted += 1
+                remaining -= 1
             else:
+                rprint(
+                    f'[yellow]You cannot carry all of the {item_name}; '
+                    f'carry weight is {current_weight()}/{max_carry_weight}.[/yellow]'
+                )
+                rprint('[grey66]Try dropping Junk or other low-value items.[/grey66]')
+                choice = input('Drop items now before leaving loot behind? [y/N]: ').strip().lower()
+                if choice in ['y', 'yes']:
+                    drop_inventory_item()
+                    continue
                 break
         if accepted:
             rprint(f"[bright_green]You found {accepted} x {item_name} {source}![/bright_green]")
-        if accepted < quantity:
-            left = quantity - accepted
+        if remaining:
             rprint(
-                f'[yellow]You leave {left} x {item_name}; '
+                f'[yellow]You leave {remaining} x {item_name}; '
                 f'carry weight is {current_weight()}/{max_carry_weight}.[/yellow]'
             )
 

@@ -53,7 +53,7 @@ def random_enemy(enemy_name):
             add_drop(drops, weapon, 1, 1)
 
     elif enemy_name == 'Goblin':
-        chance_drop(drops, 75, 'Junk', 4, 10)
+        chance_drop(drops, 75, 'Junk', 1, 3)
         chance_drop(drops, 65, 'Gold', 10, 25)
         chance_drop(drops, 15, 'Ruby', 1, 2)
         chance_drop(drops, 10, 'Emerald', 1, 1)
@@ -61,7 +61,7 @@ def random_enemy(enemy_name):
             add_drop(drops, random.choice(['Old Dagger', 'Scimitar']), 1, 1)
 
     elif enemy_name == 'Zombie':
-        chance_drop(drops, 70, 'Junk', 8, 15)
+        chance_drop(drops, 70, 'Junk', 1, 3)
         chance_drop(drops, 35, 'Gold', 10, 25)
 
     elif enemy_name == 'Thug':
