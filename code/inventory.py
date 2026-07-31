@@ -12,6 +12,41 @@ Dependencies:
 
 from rich import print as rprint
 inventory = []
+max_carry_weight = 200
+
+item_weights = {
+    'Gold':1,
+    'Ruby':3,
+    'Rubies':3,
+    'Emerald':3,
+    'Emeralds':3,
+    'Garnet':2,
+    'Diamond':4,
+    'Diamonds':4,
+    'Junk':1,
+    'Old Dagger':5,
+    'Sharp Dagger':5,
+    'Shortsword':7,
+    'Scimitar':7,
+    'Greatsword':9,
+    'Battleaxe':8,
+    'Warhammer':8,
+    'Halberd':9,
+    'Handaxe':5,
+    'Twin Daggers':6,
+    'Rapier':6,
+    'Hunter Bow':7,
+    'Crossbow':7,
+    'Poison Arrow':2,
+    'Spell Scroll: Ice Knife':1,
+    'Spell Scroll: Magic Missile':1,
+    'Spell Scroll: Lightning Bolt':1,
+    'Spell Scroll: Acid Arrow':1,
+    'Spell Scroll: Flame Lance':1,
+    'Small Health Potion':10,
+    'Medium Health Potion':20,
+    'Large Health Potion':40
+}
 
 def add_to_inv(item, quantity=1):
     '''
@@ -25,6 +60,27 @@ def add_to_inv(item, quantity=1):
 
     for _ in range(quantity):
         inventory.append(item)
+
+def item_weight(item):
+    '''
+    Gets the weight of an item.
+    '''
+
+    return item_weights.get(item, 1)
+
+def current_weight():
+    '''
+    Gets the current total inventory weight.
+    '''
+
+    return sum(item_weight(item) for item in inventory)
+
+def can_carry(item, quantity=1):
+    '''
+    Checks whether the inventory can carry the requested item quantity.
+    '''
+
+    return current_weight() + item_weight(item) * quantity <= max_carry_weight
 
 def remove_from_inv(item):
     '''
@@ -54,6 +110,19 @@ def count_inv():
         counted[item]= counted.get(item, 0) + 1
     return counted
 
+def drop_item(item, quantity=1):
+    '''
+    Drops one or more of an item from the inventory.
+    '''
+
+    dropped = 0
+    for _ in range(quantity):
+        if remove_from_inv(item):
+            dropped += 1
+        else:
+            break
+    return dropped
+
 def show_inv(player=None):
     '''
     Displays the player's inventory. Shows item names and their quantities.
@@ -68,6 +137,7 @@ def show_inv(player=None):
             f'[cyan]Health: [{player.colour}]{player.health}'
             f'[/{player.colour}]/{player.max_health}[/cyan]'
         )
+    rprint(f'[cyan]Carry Weight: {current_weight()}/{max_carry_weight}[/cyan]')
 
     if not inventory:
         rprint('[bright_black]Your inventory is empty.[/bright_black]')
