@@ -25,14 +25,16 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from advent import Fighter, Mage, Ranger, show_stats
 from enemies import BoneDevil, Ghost, Goblin, Minotaur, Ratking, Skeleton, Thug, Zombie
-from loot_table import random_enemy
-from attacks import fight_enemy
-from inventory import add_to_inv, clear_inv, show_inv
+from loot_table import random_enemy, random_room_treasure
+from attacks import fight_enemy, roll_damage
+from inventory import add_to_inv, clear_inv, count_inv, remove_from_inv, show_inv
 
 
 player= None
 collected_loot= []
 fought_rooms= set()
+searched_rooms= set()
+failed_search_rooms= set()
 rank_1_enemies = [Goblin, Skeleton, Ratking, Zombie]
 rank_2_enemies = [Zombie, Thug, Ghost]
 rank_3_enemies = [Thug, Ghost, BoneDevil, Minotaur]
@@ -104,7 +106,10 @@ def start_new_run():
 
     collected_loot.clear()
     fought_rooms.clear()
+    searched_rooms.clear()
+    failed_search_rooms.clear()
     clear_inv()
+    add_to_inv('Small Health Potion', 2)
 
     player= choose_player_class()
     rprint(f"[bold yellow]You have chosen the[/bold yellow] "
@@ -147,12 +152,118 @@ def normalize_move(move):
         return 'Inventory'
     if move.lower() in ['look', 'l']:
         return 'Look'
+    if move.lower() in ['look around', 'look again', 'search']:
+        return 'Search'
+    if move.lower() in ['use', 'use item']:
+        return 'Use'
     if move.lower() == 'quit':
         return 'Quit'
 
     direction = move.capitalize()
     shortcut = move.upper()
     return shortcut_directions.get(shortcut, direction)
+
+def add_loot(drops, source):
+    '''
+    Adds loot drops to the player's inventory and collected loot list.
+
+    :param drops: Item and quantity tuples to add.
+    :type drops: list[tuple(str, int)]
+    :param source: Description of where the loot came from.
+    :type source: str
+    '''
+
+    if not drops:
+        rprint(f'[grey66]You find nothing useful {source}.[/grey66]')
+        return
+
+    for item_name, quantity in drops:
+        add_to_inv(item_name, quantity)
+        collected_loot.append((item_name, quantity))
+        rprint(f"[bright_green]You found {quantity} x {item_name} {source}![/bright_green]")
+
+def search_room(room_name):
+    '''
+    Searches a room for treasure.
+
+    :param room_name: The room being searched.
+    :type room_name: str
+    '''
+
+    fail_rolls = [1, 2, 6, 7, 11, 12, 16, 17]
+
+    if room_name in searched_rooms:
+        rprint('[grey66]You have already found everything useful here.[/grey66]')
+        return
+
+    search_roll = random.randint(1, 20)
+    if search_roll in fail_rolls:
+        failed_search_rooms.add(room_name)
+        rprint('[grey66]You look around, but find nothing useful. Maybe you should Look Again.[/grey66]')
+        return
+
+    drops = random_room_treasure(room_name)
+    searched_rooms.add(room_name)
+    failed_search_rooms.discard(room_name)
+    add_loot(drops, f'while searching {room_name}')
+
+def use_item():
+    '''
+    Lets the player use a health potion from their inventory.
+    '''
+
+    current_player = player
+    if current_player is None:
+        rprint('[red]No player has been created yet.[/red]')
+        return
+
+    potion_healing = {
+        'Small Health Potion':'2d12',
+        'Medium Health Potion':'2d12+1d10',
+        'Large Health Potion':'2d20+1d8'
+    }
+    counted = count_inv()
+    potions = [item for item in potion_healing if counted.get(item, 0) > 0]
+
+    if not potions:
+        rprint('[grey66]You do not have any usable items.[/grey66]')
+        return
+
+    rprint('[bold]Choose an item to use:[/bold]')
+    for index, potion in enumerate(potions, start=1):
+        rprint(f'{index}. {potion} x {counted[potion]}')
+
+    choice = input('Item number or name: ').strip().lower()
+    selected_item = None
+    if choice.isdigit():
+        item_index = int(choice) - 1
+        if 0 <= item_index < len(potions):
+            selected_item = potions[item_index]
+    else:
+        for potion in potions:
+            if choice == potion.lower():
+                selected_item = potion
+
+    if selected_item is None:
+        rprint('[red]Invalid item choice.[/red]')
+        return
+
+    if current_player.health >= current_player.max_health:
+        rprint('[grey66]You are already at full health.[/grey66]')
+        return
+
+    remove_from_inv(selected_item)
+    healing = roll_damage(potion_healing[selected_item])
+    old_health = current_player.health
+    current_player.health = min(current_player.max_health, current_player.health + healing)
+    rprint(
+        f'[bright_green]You use a {selected_item} and recover '
+        f'{current_player.health - old_health} hit points.[/bright_green]'
+    )
+    rprint(
+        f'[cyan]Your Health: [{current_player.colour}]{current_player.health}'
+        f'[/{current_player.colour}]/{current_player.max_health}[/cyan]'
+    )
 
 def spawn_enemy_and_fight(room_name, enemy_classes):
     """
@@ -173,10 +284,7 @@ def spawn_enemy_and_fight(room_name, enemy_classes):
     result = fight_enemy(player, enemy)
     if result == 'win':
         drops = random_enemy(enemy.name)
-        for item_name, quantity in drops:
-            add_to_inv(item_name, quantity)
-            collected_loot.append((item_name, quantity))
-            rprint(f"[bright_green]The enemy dropped {quantity} x {item_name}![/bright_green]")
+        add_loot(drops, f'from the {enemy.name}')
     return result
 
 def spawn_enemies_and_fight(room_name):
@@ -302,8 +410,10 @@ def game_loop():
             if result == 'win':
                 show_room(current_room)
 
+        search_command = 'Look Again' if current_room in failed_search_rooms else 'Look Around'
         move = Prompt.ask(
-            'What direction do you wish to move? (or type Look, Quit, Inventory, or Inv)'
+            f'What direction do you wish to move? '
+            f'(or type Look, {search_command}, Use, Quit, Inventory, or Inv)'
         )
         move = normalize_move(move)
 
@@ -312,6 +422,12 @@ def game_loop():
             continue
         if move == 'Look':
             show_room(current_room)
+            continue
+        if move == 'Search':
+            search_room(current_room)
+            continue
+        if move == 'Use':
+            use_item()
             continue
         if move == 'Quit':
             rprint('[red]Thank you for playing![/red]')

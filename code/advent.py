@@ -15,6 +15,7 @@ class Adventurer:
     :type colour: str
     '''
     def __init__(self, health, armour, attacks, colour='white'):
+        self.max_health = health
         self.health = health
         self.armour = armour
         self.attacks = attacks

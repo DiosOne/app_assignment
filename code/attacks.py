@@ -14,6 +14,7 @@ Dependencies:
 
 import random
 from dice_rolls import dice_roll
+from inventory import count_inv, remove_from_inv
 from rich import print as rprint
 
 def roll_damage(damage):
@@ -100,9 +101,11 @@ def choose_player_attack(player):
             f"(+{attack['hit_bonus']} to hit, {attack['damage']} damage{repeat_text})"
         )
 
-    choice = input('Attack or type "quit" to flee: ').lower()
+    choice = input('Attack, "use" an item, or type "quit" to flee: ').lower()
     if choice == 'quit':
         return 'quit'
+    if choice in ['use', 'use item']:
+        return 'use'
 
     if choice.isdigit():
         attack_index = int(choice) - 1
@@ -114,6 +117,62 @@ def choose_player_attack(player):
             return attack
 
     return None
+
+def use_health_potion(player):
+    '''
+    Lets the player use a health potion during combat.
+
+    :param player: The player using the item.
+    :type player: Adventurer or subclass instance.
+    :return: True if an item was used, otherwise False.
+    :rtype: bool
+    '''
+
+    potion_healing = {
+        'Small Health Potion':'2d12',
+        'Medium Health Potion':'2d12+1d10',
+        'Large Health Potion':'2d20+1d8'
+    }
+    counted = count_inv()
+    potions = [item for item in potion_healing if counted.get(item, 0) > 0]
+
+    if not potions:
+        rprint('[grey66]You do not have any usable items.[/grey66]')
+        return False
+
+    if player.health >= player.max_health:
+        rprint('[grey66]You are already at full health.[/grey66]')
+        return False
+
+    rprint('[bold]Choose an item to use:[/bold]')
+    for index, potion in enumerate(potions, start=1):
+        rprint(f'{index}. {potion} x {counted[potion]}')
+
+    choice = input('Item number or name: ').strip().lower()
+    selected_item = None
+    if choice.isdigit():
+        item_index = int(choice) - 1
+        if 0 <= item_index < len(potions):
+            selected_item = potions[item_index]
+    else:
+        for potion in potions:
+            if choice == potion.lower():
+                selected_item = potion
+
+    if selected_item is None:
+        rprint('[red]Invalid item choice.[/red]')
+        return False
+
+    remove_from_inv(selected_item)
+    healing = roll_damage(potion_healing[selected_item])
+    old_health = player.health
+    player.health = min(player.max_health, player.health + healing)
+    rprint(
+        f'[bright_green]You use a {selected_item} and recover '
+        f'{player.health - old_health} hit points.[/bright_green]'
+    )
+    rprint(f'[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}]/{player.max_health}[/cyan]')
+    return True
 
 def ask_play_again():
     '''
@@ -157,48 +216,55 @@ def fight_enemy(player, enemy):
             rprint('[yellow]You fled the fight![/yellow]')
             return 'quit'
 
+        used_item = False
+        if player_attack == 'use':
+            if not use_health_potion(player):
+                continue
+            used_item = True
+
         if player_attack is None:
             rprint('Invalid Attack. Please choose one of the listed attacks')
             continue
 
-        attack_total = player_attack.get('times', 1)
-        attack_results = []
-        for attack_number in range(1, attack_total + 1):
-            attack_roll= dice_roll('d20') + player_attack['hit_bonus']
-            attack_hits = attack_roll >= enemy.armour
-            attack_results.append((attack_number, attack_roll, attack_hits))
+        if not used_item:
+            attack_total = player_attack.get('times', 1)
+            attack_results = []
+            for attack_number in range(1, attack_total + 1):
+                attack_roll= dice_roll('d20') + player_attack['hit_bonus']
+                attack_hits = attack_roll >= enemy.armour
+                attack_results.append((attack_number, attack_roll, attack_hits))
 
-            if attack_total > 1:
-                rprint(f'Attack Roll {attack_number}/{attack_total}: {attack_roll}')
-            else:
-                rprint(f'Attack Roll: {attack_roll}')
-            rprint(f'You use {player_attack["name"]} against the {enemy.name}')
+                if attack_total > 1:
+                    rprint(f'Attack Roll {attack_number}/{attack_total}: {attack_roll}')
+                else:
+                    rprint(f'Attack Roll: {attack_roll}')
+                rprint(f'You use {player_attack["name"]} against the {enemy.name}')
 
-            if attack_hits:
-                rprint('[green]Your attack hits![/green]')
-            else:
-                rprint('[grey66]Your attack missed.[/grey66]')
+                if attack_hits:
+                    rprint('[green]Your attack hits![/green]')
+                else:
+                    rprint('[grey66]Your attack missed.[/grey66]')
 
-        for attack_number, attack_roll, attack_hits in attack_results:
-            if attack_hits:
-                damage_roll= prompt_damage_roll(player_attack, attack_number, attack_total)
-                enemy.health-= damage_roll
-                rprint(
-                    f'[green]You do {damage_roll} points of damage to the '
-                    f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
-                )
-
-            if enemy.health<= 0:
-                if attack_number < attack_total:
+            for attack_number, attack_roll, attack_hits in attack_results:
+                if attack_hits:
+                    damage_roll= prompt_damage_roll(player_attack, attack_number, attack_total)
+                    enemy.health-= damage_roll
                     rprint(
-                        f'[grey66]The remaining {player_attack["name"]} attacks '
-                        f'have no target.[/grey66]'
+                        f'[green]You do {damage_roll} points of damage to the '
+                        f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
                     )
-                rprint(
-                    f'[green]You defeated the [bold]'
-                    f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
-                )
-                return 'win'
+
+                if enemy.health<= 0:
+                    if attack_number < attack_total:
+                        rprint(
+                            f'[grey66]The remaining {player_attack["name"]} attacks '
+                            f'have no target.[/grey66]'
+                        )
+                    rprint(
+                        f'[green]You defeated the [bold]'
+                        f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
+                    )
+                    return 'win'
 
         enemy_attack= random.choice(enemy.attacks)
         for _ in range(enemy_attack.get('times', 1)):
