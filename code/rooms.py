@@ -21,12 +21,12 @@ rooms= {
     
     'Servants Quarters':{
         'description': 'Narrow bunks and old footlockers line the walls of this cramped servants quarters.',
-        'exits':{'North':'East Wing', 'West':'Main Hall', 'Northwest':'Dining Hall', 'Northeast':'Library'}
+        'exits':{'North':'East Wing', 'West':'Main Hall', 'Northwest':'Dining Hall'}
     },
     
     'Guard Post':{
         'description':'Weapon racks, dented shields, and a worn watch table fill the old guard post.',
-        'exits':{'North':'West Wing', 'East':'Main Hall', 'Northeast':'Dining Hall', 'Northwest':'Bedroom'}
+        'exits':{'North':'West Wing', 'East':'Main Hall', 'Northeast':'Dining Hall'}
     },
 
     'West Wing':{

@@ -41,3 +41,10 @@ def show_inv():
             counted[item]= counted.get(item, 0) + 1
         for item, count in counted.items():
             rprint(f'- {item} x {count}')
+
+def clear_inv():
+    '''
+    Clears all items from the player's inventory.
+    '''
+
+    inventory.clear()

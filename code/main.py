@@ -27,9 +27,10 @@ from advent import Fighter, Mage, Ranger, show_stats
 from enemies import BoneDevil, Ghost, Goblin, Minotaur, Ratking, Skeleton, Thug, Zombie
 from loot_table import random_enemy
 from attacks import fight_enemy
-from inventory import add_to_inv, show_inv
+from inventory import add_to_inv, clear_inv, show_inv
 
 
+player= None
 collected_loot= []
 fought_rooms= set()
 rank_1_enemies = [Goblin, Skeleton, Ratking, Zombie]
@@ -91,10 +92,25 @@ def choose_player_class():
         else:
             rprint('Invalid class, try again')
 
-player= choose_player_class()
-rprint(f"[bold yellow]You have chosen the[/bold yellow] "
-       f"[{player.colour}]{player.__class__.__name__}[/{player.colour}]")
-show_stats(player)
+def start_new_run():
+    '''
+    Resets run state and starts the player at the entrance hall.
+
+    :return: Starting room name for the new run.
+    :rtype: str
+    '''
+
+    global player
+
+    collected_loot.clear()
+    fought_rooms.clear()
+    clear_inv()
+
+    player= choose_player_class()
+    rprint(f"[bold yellow]You have chosen the[/bold yellow] "
+           f"[{player.colour}]{player.__class__.__name__}[/{player.colour}]")
+    show_stats(player)
+    return 'Entrance Hall'
 
 
 def show_room(room_name):
@@ -127,8 +143,10 @@ def normalize_move(move):
     '''
 
     move = move.strip()
-    if move.lower() == 'inventory':
+    if move.lower() in ['inventory', 'inv']:
         return 'Inventory'
+    if move.lower() in ['look', 'l']:
+        return 'Look'
     if move.lower() == 'quit':
         return 'Quit'
 
@@ -205,11 +223,27 @@ def room_encounter(room_name):
     if room_name in encounter_table:
         if room_name not in fought_rooms:
             result = spawn_enemies_and_fight(room_name)
-            if result is False:
-                return False
+            if result is not None:
+                return result
         else:
             rprint("[grey66]This room is now empty.[/grey66]")
         return
+
+def ask_play_again():
+    '''
+    Prompts the player to start a new run.
+
+    :return: True if the player wants to play again, otherwise False.
+    :rtype: bool
+    '''
+
+    while True:
+        choice = input('\nWould you like to play again? [Yes/No] (No): ').strip().lower()
+        if choice in ['', 'n', 'no']:
+            return False
+        if choice in ['y', 'yes']:
+            return True
+        rprint('[red]Please enter Yes or No.[/red]')
 
 
 def end_game():
@@ -229,13 +263,7 @@ def end_game():
     else:
         rprint("[dark_green]You didn't collect any loot.[/dark_green]")
 
-    choice = Prompt.ask(
-        '\nWould you like to [bold]play again?[/bold]',
-        choices=['Yes', 'No'],
-        default='No'
-    ).capitalize()
-
-    if choice == 'Yes':
+    if ask_play_again():
         return True
     else:
         rprint('[red]Thank you for playing[/red]')
@@ -254,13 +282,11 @@ def game_loop():
 
     encounter_rooms = list(encounter_table.keys())
 
-    current_room = 'Entrance Hall'
+    current_room = start_new_run()
     while True:
         if current_room == 'Exit':
             if end_game():
-                collected_loot.clear()
-                fought_rooms.clear()
-                current_room = 'Entrance Hall'
+                current_room = start_new_run()
                 continue
             else:
                 break
@@ -270,14 +296,22 @@ def game_loop():
             result = room_encounter(current_room)
             if result is False:
                 break
+            if result is True:
+                current_room = start_new_run()
+                continue
+            if result == 'win':
+                show_room(current_room)
 
         move = Prompt.ask(
-            'What direction do you wish to move? (or type Quit to exit, or Inventory to check)'
+            'What direction do you wish to move? (or type Look, Quit, Inventory, or Inv)'
         )
         move = normalize_move(move)
 
         if move == 'Inventory':
             show_inv()
+            continue
+        if move == 'Look':
+            show_room(current_room)
             continue
         if move == 'Quit':
             rprint('[red]Thank you for playing![/red]')

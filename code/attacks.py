@@ -10,13 +10,11 @@ Dependencies:
 - random: for random choice selection
 - dice_rolls.dice_roll: for dice-based random rolls
 - rich.print (imported as rprint): for styled console output
-- rich.prompt.Prompt: for interactive user input during defeat
 '''
 
 import random
 from dice_rolls import dice_roll
 from rich import print as rprint
-from rich.prompt import Prompt
 
 def roll_damage(damage):
     '''
@@ -117,6 +115,22 @@ def choose_player_attack(player):
 
     return None
 
+def ask_play_again():
+    '''
+    Prompts the player to start a new run after defeat.
+
+    :return: True if the player wants to play again, otherwise False.
+    :rtype: bool
+    '''
+
+    while True:
+        choice = input('\nWould you like to play again? [Yes/No] (No): ').strip().lower()
+        if choice in ['', 'n', 'no']:
+            return False
+        if choice in ['y', 'yes']:
+            return True
+        rprint('[red]Please enter Yes or No.[/red]')
+
 def fight_enemy(player, enemy):
     '''
     Conducts a turn-based fight sequence between the player and an enemy.
@@ -216,13 +230,7 @@ def fight_enemy(player, enemy):
 
         if player.health<= 0:
             rprint('[bold][red]You Have Been Defeated![/red][/bold]')
-            choice = Prompt.ask(
-                '\nWould you like to [bold]play again?[/bold]',
-                choices=['Yes', 'No'],
-                default='No'
-            ).capitalize()
-
-            if choice== 'Yes':
+            if ask_play_again():
                 return True
 
             else:
