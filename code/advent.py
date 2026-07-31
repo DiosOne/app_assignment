@@ -33,8 +33,8 @@ class Fighter(Adventurer):
             health=95,
             armour=17,
             attacks=[
-                {'name':'Longsword', 'hit_bonus':5, 'damage':'1d10+3'},
-                {'name':'Heavy Crossbow', 'hit_bonus':3, 'damage':'1d10+1'}
+                {'name':'Longsword', 'hit_bonus':5, 'damage':'1d10+1'},
+                {'name':'Heavy Crossbow', 'hit_bonus':3, 'damage':'1d10+5'}
             ],
             colour='bold red'
             )
@@ -52,8 +52,8 @@ class Mage(Adventurer):
             health=80,
             armour=15,
             attacks=[
-                {'name':'Fire Bolt', 'hit_bonus':6, 'damage':'1d10'},
-                {'name':'Scorching Ray', 'hit_bonus':6, 'damage':'2d6', 'times':3}
+                {'name':'Fire Bolt', 'hit_bonus':5, 'damage':'1d10'},
+                {'name':'Scorching Ray', 'hit_bonus':5, 'damage':'2d6', 'times':3}
             ],
             colour='bold purple'
             )
