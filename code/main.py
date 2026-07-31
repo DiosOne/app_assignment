@@ -46,22 +46,22 @@ rank_2_enemies = [Zombie, Thug, Ghost]
 rank_3_enemies = [Thug, Ghost, BoneDevil, Minotaur]
 
 encounter_table = {
-    'Guard Post':{'enemy_count':(2, 5), 'enemy_classes':rank_1_enemies},
-    'Main Hall':{'enemy_count':(2, 5), 'enemy_classes':rank_1_enemies},
-    'Servants Quarters':{'enemy_count':(2, 5), 'enemy_classes':rank_1_enemies},
+    'Guard Post':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies},
+    'Main Hall':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies},
+    'Servants Quarters':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies},
 
-    'Bedroom':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
-    'West Wing':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
-    'Dining Hall':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
-    'East Wing':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
-    'Library':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'Bedroom':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'West Wing':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'Dining Hall':{'enemy_count':(2, 4), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'East Wing':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies + rank_2_enemies},
+    'Library':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies + rank_2_enemies},
 
-    'Armoury':{'enemy_count':(3, 6), 'enemy_classes':rank_2_enemies + rank_3_enemies},
-    'Scullery':{'enemy_count':(3, 6), 'enemy_classes':rank_2_enemies + rank_3_enemies},
-    'Chapel':{'enemy_count':(3, 6), 'enemy_classes':rank_2_enemies + rank_3_enemies},
+    'Armoury':{'enemy_count':(2, 4), 'enemy_classes':rank_2_enemies + rank_2_enemies},
+    'Scullery':{'enemy_count':(2, 4), 'enemy_classes':rank_2_enemies + rank_2_enemies},
+    'Chapel':{'enemy_count':(2, 3), 'enemy_classes':rank_2_enemies + rank_2_enemies},
 
-    'Observatory':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_3_enemies},
-    'Treasury':{'enemy_count':(3, 5), 'enemy_classes':rank_1_enemies + rank_3_enemies}
+    'Observatory':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies + rank_3_enemies},
+    'Treasury':{'enemy_count':(2, 3), 'enemy_classes':rank_1_enemies + rank_3_enemies}
 }
 
 direction_shortcuts = {
