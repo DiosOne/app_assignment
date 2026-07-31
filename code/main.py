@@ -445,7 +445,7 @@ def game_loop():
             if result == 'win':
                 show_room(current_room)
 
-        search_command = 'Look Again' if current_room in failed_search_rooms else 'Look Around'
+        search_command = 'Look Again' if current_room in failed_search_rooms else 'Search Room'
         move = Prompt.ask(
             f'What direction do you wish to move? '
             f'(or type Look, {search_command}, Use, Quit, Inventory, or Inv)'
