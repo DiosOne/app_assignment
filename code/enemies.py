@@ -144,7 +144,7 @@ class BoneDevil(Enemy):
         super().__init__(
             name="Bone Devil",
             health=32,
-            armour=19,
+            armour=16,
             attacks=[
                 {'name':'Claw', 'hit_bonus':8, 'damage':'1d8+4'},
                 {'name':'Sting', 'hit_bonus':8, 'damage':'2d8+4+2d6'}
