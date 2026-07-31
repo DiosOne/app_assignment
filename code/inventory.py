@@ -54,11 +54,20 @@ def count_inv():
         counted[item]= counted.get(item, 0) + 1
     return counted
 
-def show_inv():
+def show_inv(player=None):
     '''
     Displays the player's inventory. Shows item names and their quantities.
     If the inventory is empty, a message is printed to indicate that.
+
+    :param player: Optional player whose health will be displayed.
+    :type player: Adventurer or subclass instance, optional
     '''
+
+    if player is not None:
+        rprint(
+            f'[cyan]Health: [{player.colour}]{player.health}'
+            f'[/{player.colour}]/{player.max_health}[/cyan]'
+        )
 
     if not inventory:
         rprint('[bright_black]Your inventory is empty.[/bright_black]')

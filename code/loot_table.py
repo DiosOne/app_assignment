@@ -12,6 +12,17 @@ def add_drop(drops, item, min_amount, max_amount):
     if amount > 0:
         drops.append((item, amount))
 
+def add_enemy_potion_drop(drops):
+    '''Adds a possible health potion drop to enemy loot.'''
+
+    potion_roll = random.randint(1, 100)
+    if potion_roll <= 8:
+        drops.append(('Large Health Potion', 1))
+    elif potion_roll <= 28:
+        drops.append(('Medium Health Potion', 1))
+    elif potion_roll <= 58:
+        drops.append(('Small Health Potion', 1))
+
 def random_enemy(enemy_name):
     '''Generate loot drops for a defeated enemy.
 
@@ -64,6 +75,7 @@ def random_enemy(enemy_name):
         add_drop(drops, 'Gold', 85, 95)
         add_drop(drops, 'Diamond', 1, 4)
 
+    add_enemy_potion_drop(drops)
     return drops
 
 def medium_chest():

@@ -26,7 +26,7 @@ from rich.prompt import Prompt
 from advent import Fighter, Mage, Ranger, show_stats
 from enemies import BoneDevil, Ghost, Goblin, Minotaur, Ratking, Skeleton, Thug, Zombie
 from loot_table import random_enemy, random_room_treasure
-from attacks import fight_enemy, roll_damage
+from attacks import fight_enemy
 from inventory import add_to_inv, clear_inv, count_inv, remove_from_inv, show_inv
 
 
@@ -35,6 +35,12 @@ collected_loot= []
 fought_rooms= set()
 searched_rooms= set()
 failed_search_rooms= set()
+search_attempts= {}
+searchable_rooms = [
+    'Bedroom', 'Library', 'Scullery',
+    'Guard Post', 'Servants Quarters', 'Dining Hall',
+    'Armoury', 'Chapel', 'Observatory', 'Treasury'
+]
 rank_1_enemies = [Goblin, Skeleton, Ratking, Zombie]
 rank_2_enemies = [Zombie, Thug, Ghost]
 rank_3_enemies = [Thug, Ghost, BoneDevil, Minotaur]
@@ -108,6 +114,7 @@ def start_new_run():
     fought_rooms.clear()
     searched_rooms.clear()
     failed_search_rooms.clear()
+    search_attempts.clear()
     clear_inv()
     add_to_inv('Small Health Potion', 2)
 
@@ -130,9 +137,12 @@ def show_room(room_name):
         f'{direction}({direction_shortcuts.get(direction, direction)})'
         for direction in room['exits'].keys()
     )
+    search_hint = ''
+    if room_name not in searched_rooms and room_name in searchable_rooms:
+        search_hint = '\n\n[grey66]Maybe you should look around this room.[/grey66]'
     rprint(Panel(
         f'[bright_blue]{room.get("display_name", room_name)}[/bright_blue]\n\n'
-        f'{room["description"]}\n\n'
+        f'{room["description"]}{search_hint}\n\n'
         f'[grey66]Exits:[/grey66]{exits}',
         title='Room Info'
     ))
@@ -190,21 +200,41 @@ def search_room(room_name):
     :type room_name: str
     '''
 
-    fail_rolls = [1, 2, 6, 7, 11, 12, 16, 17]
+    fail_rolls = [1, 2, 3, 11, 12, 13]
+    failure_messages = {
+        1:'Hmm strange, maybe have a better look?',
+        2:"It definetly feels like I'm missing something here...",
+        3:'Whelp, guess its really empty'
+    }
+
+    if room_name not in searchable_rooms:
+        rprint('[grey66]There does not seem to be anything hidden here.[/grey66]')
+        return
 
     if room_name in searched_rooms:
         rprint('[grey66]You have already found everything useful here.[/grey66]')
         return
 
+    attempts = search_attempts.get(room_name, 0)
+    if attempts >= 3:
+        rprint('[grey66]Whelp, guess its really empty[/grey66]')
+        return
+
     search_roll = random.randint(1, 20)
     if search_roll in fail_rolls:
+        attempts += 1
+        search_attempts[room_name] = attempts
         failed_search_rooms.add(room_name)
-        rprint('[grey66]You look around, but find nothing useful. Maybe you should Look Again.[/grey66]')
+        if attempts >= 3:
+            searched_rooms.add(room_name)
+            failed_search_rooms.discard(room_name)
+        rprint(f'[grey66]{failure_messages[attempts]}[/grey66]')
         return
 
     drops = random_room_treasure(room_name)
     searched_rooms.add(room_name)
     failed_search_rooms.discard(room_name)
+    rprint('[bright_green]You found a hidden treasure chest![/bright_green]')
     add_loot(drops, f'while searching {room_name}')
 
 def use_item():
@@ -218,9 +248,9 @@ def use_item():
         return
 
     potion_healing = {
-        'Small Health Potion':'2d12',
-        'Medium Health Potion':'2d12+1d10',
-        'Large Health Potion':'2d20+1d8'
+        'Small Health Potion':15,
+        'Medium Health Potion':30,
+        'Large Health Potion':50
     }
     counted = count_inv()
     potions = [item for item in potion_healing if counted.get(item, 0) > 0]
@@ -253,7 +283,7 @@ def use_item():
         return
 
     remove_from_inv(selected_item)
-    healing = roll_damage(potion_healing[selected_item])
+    healing = potion_healing[selected_item]
     old_health = current_player.health
     current_player.health = min(current_player.max_health, current_player.health + healing)
     rprint(
@@ -278,10 +308,15 @@ def spawn_enemy_and_fight(room_name, enemy_classes):
                      or None if no combat occurs.
     """
 
+    current_player = player
+    if current_player is None:
+        rprint('[red]No player has been created yet.[/red]')
+        return False
+
     enemy_class = random.choice(enemy_classes)
     enemy = enemy_class()
     rprint(f"[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]")
-    result = fight_enemy(player, enemy)
+    result = fight_enemy(current_player, enemy)
     if result == 'win':
         drops = random_enemy(enemy.name)
         add_loot(drops, f'from the {enemy.name}')
@@ -418,7 +453,7 @@ def game_loop():
         move = normalize_move(move)
 
         if move == 'Inventory':
-            show_inv()
+            show_inv(player)
             continue
         if move == 'Look':
             show_room(current_room)

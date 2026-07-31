@@ -129,9 +129,9 @@ def use_health_potion(player):
     '''
 
     potion_healing = {
-        'Small Health Potion':'2d12',
-        'Medium Health Potion':'2d12+1d10',
-        'Large Health Potion':'2d20+1d8'
+        'Small Health Potion':15,
+        'Medium Health Potion':30,
+        'Large Health Potion':50
     }
     counted = count_inv()
     potions = [item for item in potion_healing if counted.get(item, 0) > 0]
@@ -164,7 +164,7 @@ def use_health_potion(player):
         return False
 
     remove_from_inv(selected_item)
-    healing = roll_damage(potion_healing[selected_item])
+    healing = potion_healing[selected_item]
     old_health = player.health
     player.health = min(player.max_health, player.health + healing)
     rprint(
