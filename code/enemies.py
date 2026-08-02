@@ -128,7 +128,7 @@ class Ghost(Enemy):
             health=45,
             armour=11,
             attacks=[
-                {'name':'Withering Touch', 'hit_bonus':5, 'damage':'4d6+3'},
+                {'name':'Withering Touch', 'hit_bonus':3, 'damage':'2d6+3'},
                 {'name':'Shock', 'hit_bonus':4, 'damage':'2d8'}
             ],
             colour='bright_cyan'
