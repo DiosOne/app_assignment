@@ -21,7 +21,7 @@ rooms= {
     
     'Servants Quarters':{
         'description': 'Narrow bunks and old footlockers line the walls of this cramped servants quarters.',
-        'exits':{'North':'East Wing', 'Northwest':'Dining Hall'}
+        'exits':{'North':'East Wing', 'West':'Main Hall', 'Northwest':'Dining Hall'}
     },
     
     'Guard Post':{
