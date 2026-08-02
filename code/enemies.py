@@ -72,7 +72,7 @@ class Goblin(Enemy):
     def __init__(self):
         super().__init__(
             name="Goblin",
-            health=7,
+            health=12,
             armour=15,
             attacks=[
                 {'name':'Scimitar', 'hit_bonus':4, 'damage':'1d6+2'},
@@ -91,7 +91,7 @@ class Zombie(Enemy):
         super().__init__(
             name="Zombie",
             health=22,
-            armour=8,
+            armour=13,
             attacks=[
                 {'name':'Slam', 'hit_bonus':3, 'damage':'1d6+1', 'times':2}
             ],

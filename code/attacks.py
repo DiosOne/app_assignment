@@ -13,19 +13,25 @@ Dependencies:
 '''
 
 import random
+import time
 from dice_rolls import dice_roll
 from inventory import (
     count_inv, current_weight, drop_item, item_weight,
     max_carry_weight, remove_from_inv, show_inv
 )
+from rich.console import Console
 from rich import print as rprint
+
+console = Console()
+enemy_action_pause = 3
+enemy_result_pause = 2
 
 def combat_separator():
     '''
     Prints a separator between combat log sections.
     '''
 
-    rprint('\n[grey66]--[/grey66]\n')
+    rprint('[grey66]--[/grey66]\n')
 
 def roll_damage(damage):
     '''
@@ -62,30 +68,49 @@ def format_damage_prompt(damage):
         return damage
     return parts[0] + ''.join(f'(+{part})' for part in parts[1:])
 
-def prompt_damage_roll(attack, attack_number=1, attack_total=1):
+def attack_verb(player, attack):
+    '''
+    Gets the action verb for an attack message.
+    '''
+
+    spell_names = [
+        'Fire Bolt', 'Scorching Ray', 'Ice Knife', 'Magic Missile',
+        'Lightning Bolt', 'Acid Arrow', 'Flame Lance'
+    ]
+    if player.__class__.__name__ == 'Mage' or attack['name'] in spell_names:
+        return 'cast'
+    return 'use'
+
+def attack_roll_label(attack_number, attack_total):
+    '''
+    Formats the attack roll counter.
+    '''
+
+    if attack_total > 1:
+        return f' ({attack_number}/{attack_total})'
+    return ''
+
+def prompt_attack_roll(attack_number=1, attack_total=1):
+    '''
+    Prompts the player before rolling to hit.
+    '''
+
+    input(f'Press Enter to roll for attack{attack_roll_label(attack_number, attack_total)}: ')
+
+def prompt_damage_roll(attack, attack_roll):
     '''
     Prompts the player to roll damage for a successful attack.
 
     :param attack: Attack data for the successful attack.
     :type attack: dict
-    :param attack_number: Current attack number for multi-attack abilities.
-    :type attack_number: int
-    :param attack_total: Total number of attacks for the chosen ability.
-    :type attack_total: int
     :return: Total damage rolled.
     :rtype: int
     '''
 
     while True:
-        attack_label = attack['name']
-        if attack_total > 1:
-            attack_label = f'{attack_label} {attack_number}/{attack_total}'
-
-        rprint(f'Your attack hits! Roll a [bold]{format_damage_prompt(attack["damage"])}[/bold]!')
-        rprint()
-        input(
-            f'Press Enter to Roll {format_damage_prompt(attack["damage"])} '
-            f'for {attack_label}: '
+        console.input(
+            f'Attack Roll: [bright_yellow]{attack_roll}[/bright_yellow]. '
+            f'Your attack hits! Press Enter to roll for Damage: '
         )
         return roll_damage(attack['damage'])
 
@@ -110,8 +135,11 @@ def choose_player_attack(player):
         )
 
     combat_separator()
-    choice = input('Attack, "use" an item, "u", "inv", "drop", or type "quit" to flee: ').lower()
-    if choice == 'quit':
+    choice = input(
+        'Choose an Attack, or type "use" for potions, "inv" to check inventory, '
+        'or "run" to flee the fight: '
+    ).lower()
+    if choice in ['run', 'quit']:
         return 'quit'
     if choice in ['use', 'use item', 'u']:
         return 'use'
@@ -246,7 +274,7 @@ def ask_play_again():
             return True
         rprint('[red]Please enter Yes or No.[/red]')
 
-def fight_enemy(player, enemy):
+def fight_enemy(player, enemy, opening_attack=None):
     '''
     Conducts a turn-based fight sequence between the player and an enemy.
 
@@ -266,7 +294,13 @@ def fight_enemy(player, enemy):
     '''
 
     while player.health > 0 and enemy.health > 0:
-        player_attack = choose_player_attack(player)
+        if opening_attack is not None:
+            player_attack = opening_attack['attack']
+            opening_attack_total = opening_attack['remaining']
+            opening_attack = None
+        else:
+            player_attack = choose_player_attack(player)
+            opening_attack_total = None
 
         if player_attack == 'quit':
             rprint('[yellow]You fled the fight![/yellow]')
@@ -291,39 +325,45 @@ def fight_enemy(player, enemy):
             continue
 
         if not used_item:
-            attack_total = player_attack.get('times', 1)
+            attack_total = opening_attack_total or player_attack.get('times', 1)
+            rprint(
+                f'You {attack_verb(player, player_attack)} {player_attack["name"]} '
+                f'against the [{enemy.colour}]{enemy.name}[/{enemy.colour}]'
+            )
             for attack_number in range(1, attack_total + 1):
+                prompt_attack_roll(attack_number, attack_total)
+                combat_separator()
                 attack_roll= dice_roll('d20') + player_attack['hit_bonus']
                 attack_hits = attack_roll >= enemy.armour
 
-                if attack_total > 1:
-                    rprint(f'Attack Roll {attack_number}/{attack_total}: {attack_roll}')
-                else:
-                    rprint(f'Attack Roll: {attack_roll}')
-                rprint()
-                rprint(f'You use {player_attack["name"]} against the {enemy.name}')
-                combat_separator()
-
                 if attack_hits:
-                    damage_roll= prompt_damage_roll(player_attack, attack_number, attack_total)
+                    damage_roll= prompt_damage_roll(player_attack, attack_roll)
                     enemy.health-= damage_roll
                     rprint(
                         f'[green]You do {damage_roll} points of damage to the '
                         f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
                     )
                 else:
-                    rprint('[grey66]Your attack missed.[/grey66]')
+                    rprint(
+                        f'[grey66]Attack Roll: [bright_yellow]{attack_roll}[/bright_yellow]. '
+                        f'Your attack misses![/grey66]'
+                    )
 
                 if enemy.health<= 0:
-                    if attack_number < attack_total:
-                        rprint(
-                            f'[grey66]The remaining {player_attack["name"]} attacks '
-                            f'have no target.[/grey66]'
-                        )
+                    rprint()
                     rprint(
                         f'[green]You defeated the [bold]'
                         f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
                     )
+                    remaining_attacks = attack_total - attack_number
+                    if remaining_attacks > 0:
+                        return {
+                            'status':'win',
+                            'remaining_attack':{
+                                'attack':player_attack,
+                                'remaining':remaining_attacks
+                            }
+                        }
                     return 'win'
 
                 if attack_number < attack_total:
@@ -335,11 +375,17 @@ def fight_enemy(player, enemy):
         for enemy_attack_number in range(1, enemy_attack_total + 1):
             enemy_attack_roll= dice_roll('d20') + enemy_attack['hit_bonus']
 
+            rprint(f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] attacks you.')
+            time.sleep(enemy_action_pause)
+            rprint()
             rprint(
                 f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] '
-                f'uses {enemy_attack["name"]}. Attack Roll: {enemy_attack_roll}'
+                f'uses {enemy_attack["name"]}.'
             )
+            time.sleep(enemy_result_pause)
             rprint()
+            rprint(f'Attack Roll: [bright_yellow]{enemy_attack_roll}[/bright_yellow]')
+            time.sleep(enemy_result_pause)
 
             if enemy_attack_roll>= player.armour:
                 rprint(
@@ -347,6 +393,7 @@ def fight_enemy(player, enemy):
                     f'rolls {enemy_attack["damage"]} for damage.'
                 )
                 combat_separator()
+                time.sleep(enemy_result_pause)
                 enemy_damage= roll_damage(enemy_attack['damage'])
 
                 rprint(
@@ -374,6 +421,7 @@ def fight_enemy(player, enemy):
                 return False
 
         combat_separator()
+        time.sleep(enemy_action_pause)
         rprint(
             f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | "
             f"Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]"

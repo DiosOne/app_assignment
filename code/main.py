@@ -114,8 +114,7 @@ def show_title_screen():
         '[bold bright_red]1. Fighter[/bold bright_red]\n'
         '[bold purple]2. Mage[/bold purple]\n'
         '[bold green]3. Ranger[/bold green]'
-        ),
-        title='Character Select'
+        )
     ))
 
 def choose_player_class():
@@ -348,7 +347,10 @@ def add_loot(drops, source):
                     continue
                 break
         if accepted:
-            rprint(f"[bright_green]You found {accepted} x {item_name} {source}![/bright_green]")
+            if source.startswith('from the '):
+                rprint(f'[bright_green]You recieved {accepted} x {item_name}.[/bright_green]')
+            else:
+                rprint(f"[bright_green]You found {accepted} x {item_name} {source}![/bright_green]")
         if remaining:
             rprint(
                 f'[yellow]You leave {remaining} x {item_name}; '
@@ -501,7 +503,35 @@ def drop_inventory_item():
     else:
         rprint('[red]You do not have that item.[/red]')
 
-def spawn_enemy_and_fight(room_name, enemy_classes):
+def combat_result_status(result):
+    '''
+    Gets the status value from a combat result.
+    '''
+
+    if isinstance(result, dict):
+        return result.get('status')
+    return result
+
+def remaining_attack_from_result(result):
+    '''
+    Gets unused attack data from a combat result.
+    '''
+
+    if isinstance(result, dict):
+        return result.get('remaining_attack')
+    return None
+
+def attack_name_plural(attack):
+    '''
+    Gets a readable plural name for a carried-over attack.
+    '''
+
+    attack_name = attack['name']
+    if attack_name.endswith('s'):
+        return attack_name
+    return f'{attack_name}s'
+
+def spawn_enemy_and_fight(room_name, enemy_classes, pending_attack=None):
     """
     Spawns a random enemy and initiates combat. If the player wins, they receive loot.
 
@@ -522,11 +552,19 @@ def spawn_enemy_and_fight(room_name, enemy_classes):
     enemy_class = random.choice(enemy_classes)
     enemy = enemy_class()
     rprint(f"[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]")
+    opening_attack = None
+    if pending_attack is not None:
+        choice = input(
+            f'Attack with remaining {attack_name_plural(pending_attack["attack"])}? [y/n]: '
+        ).strip().lower()
+        if choice in ['y', 'yes']:
+            opening_attack = pending_attack
     combat_separator()
-    result = fight_enemy(current_player, enemy)
-    if result == 'win':
+    result = fight_enemy(current_player, enemy, opening_attack)
+    if combat_result_status(result) == 'win':
         drops = random_enemy(enemy.name)
         add_loot(drops, f'from the {enemy.name}')
+        combat_separator()
     return result
 
 def spawn_enemies_and_fight(room_name):
@@ -548,10 +586,12 @@ def spawn_enemies_and_fight(room_name):
     enemy_count = enemy_count_for_room(room_name)
 
     rprint(f"[red]You hear {enemy_count} enemies nearby![/red]\n")
+    pending_attack = None
     for _ in range(enemy_count):
-        result = spawn_enemy_and_fight(room_name, encounter['enemy_classes'])
-        if result != 'win':
+        result = spawn_enemy_and_fight(room_name, encounter['enemy_classes'], pending_attack)
+        if combat_result_status(result) != 'win':
             return result
+        pending_attack = remaining_attack_from_result(result)
 
     fought_rooms.add(room_name)
     return 'win'
@@ -763,9 +803,9 @@ def game_loop():
                 show_room(current_room)
 
         move = Prompt.ask(
-            f'What direction do you wish to move? '
-            f'(or type [bold]L[/bold]ook, [bold]S[/bold]earch, '
-            f'[bold]U[/bold]se, [bold]D[/bold]rop, [bold]Q[/bold]uit, or [bold]I[/bold]nv)'
+            f'What would you like to do? Choose a direction, or type "look" for more info, '
+            f'"search" to search the room, "inv" to check inventory, "use" for potions, '
+            f'or "quit" to quit the game'
         )
         move = normalize_move(move, current_room)
 
