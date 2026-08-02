@@ -104,10 +104,10 @@ def choose_player_attack(player):
             f"(+{attack['hit_bonus']} to hit, {attack['damage']} damage{repeat_text})"
         )
 
-    choice = input('Attack, "use" an item, "inv", "drop", or type "quit" to flee: ').lower()
+    choice = input('Attack, "use" an item, "u", "inv", "drop", or type "quit" to flee: ').lower()
     if choice == 'quit':
         return 'quit'
-    if choice in ['use', 'use item']:
+    if choice in ['use', 'use item', 'u']:
         return 'use'
     if choice in ['inventory', 'inv']:
         return 'inventory'

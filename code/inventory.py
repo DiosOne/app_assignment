@@ -75,6 +75,13 @@ def current_weight():
 
     return sum(item_weight(item) for item in inventory)
 
+def displayed_weight():
+    '''
+    Gets the current inventory weight rounded to one decimal place for display.
+    '''
+
+    return round(current_weight(), 1)
+
 def can_carry(item, quantity=1):
     '''
     Checks whether the inventory can carry the requested item quantity.
@@ -137,7 +144,7 @@ def show_inv(player=None):
             f'[cyan]Health: [{player.colour}]{player.health}'
             f'[/{player.colour}]/{player.max_health}[/cyan]'
         )
-    rprint(f'[cyan]Carry Weight: {current_weight()}/{max_carry_weight}[/cyan]')
+    rprint(f'[cyan]Carry Weight: {displayed_weight()}/{max_carry_weight}[/cyan]')
 
     if not inventory:
         rprint('[bright_black]Your inventory is empty.[/bright_black]')

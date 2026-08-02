@@ -22,11 +22,11 @@ def add_enemy_potion_drop(drops):
     '''Adds a possible health potion drop to enemy loot.'''
 
     potion_roll = random.randint(1, 100)
-    if potion_roll <= 3:
+    if potion_roll <= 4:
         drops.append(('Large Health Potion', 1))
-    elif potion_roll <= 10:
+    elif potion_roll <= 13:
         drops.append(('Medium Health Potion', 1))
-    elif potion_roll <= 25:
+    elif potion_roll <= 30:
         drops.append(('Small Health Potion', 1))
 
 def random_enemy(enemy_name):
@@ -102,7 +102,7 @@ def large_chest():
         ('Diamond', random.randint(2, 5)),
         ('Emerald', random.randint(4, 8))
     ]
-    if random.randint(1, 100) <= 8:
+    if random.randint(1, 100) <= 10:
         drops.append((random.choice(['Medium Health Potion', 'Large Health Potion']), 1))
     return drops
 
@@ -131,7 +131,7 @@ def random_room_treasure(room_name):
 
     medium_chest_rooms = ['Servants Quarters', 'Guard Post', 'Bedroom', 'Armoury', 'Library']
 
-    if room_name in room_potions and random.randint(1, 100) <= 60:
+    if room_name in room_potions and random.randint(1, 100) <= 65:
         drops.append((room_potions[room_name], 1))
 
     if room_name == 'Treasury':
