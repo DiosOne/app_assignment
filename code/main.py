@@ -734,22 +734,29 @@ def game_loop():
     global run_count
 
     current_room = start_new_run()
+    show_current_room = True
     while True:
         if current_room == 'Exit':
             if end_game():
                 run_count += 1
                 current_room = start_new_run(keep_inventory=True)
+                show_current_room = True
                 continue
             else:
                 break
 
-        show_room(current_room)
+        if show_current_room:
+            show_room(current_room)
+        else:
+            show_current_room = True
+
         if current_room in encounter_rooms and current_room not in fought_rooms:
             result = room_encounter(current_room)
             if result is False:
                 break
             if result is True:
                 current_room = start_new_run()
+                show_current_room = True
                 continue
             if result == 'win':
                 show_room(current_room)
@@ -766,6 +773,7 @@ def game_loop():
             continue
         if move == 'Look':
             show_room(current_room, show_exit_rooms=True)
+            show_current_room = False
             continue
         if move == 'Search':
             search_room(current_room)
