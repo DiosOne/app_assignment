@@ -27,7 +27,7 @@ from rich.prompt import Prompt
 from advent import Fighter, Mage, Ranger, show_stats
 from enemies import BoneDevil, Ghost, Goblin, Minotaur, Ratking, Skeleton, Thug, Zombie
 from loot_table import random_enemy, random_room_treasure
-from attacks import fight_enemy
+from attacks import combat_separator, fight_enemy
 from inventory import (
     add_to_inv, can_carry, clear_inv, count_inv, current_weight,
     drop_item, item_weight, max_carry_weight, remove_from_inv, show_inv
@@ -522,6 +522,7 @@ def spawn_enemy_and_fight(room_name, enemy_classes):
     enemy_class = random.choice(enemy_classes)
     enemy = enemy_class()
     rprint(f"[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]")
+    combat_separator()
     result = fight_enemy(current_player, enemy)
     if result == 'win':
         drops = random_enemy(enemy.name)
@@ -546,7 +547,7 @@ def spawn_enemies_and_fight(room_name):
     encounter = encounter_table[room_name]
     enemy_count = enemy_count_for_room(room_name)
 
-    rprint(f"[red]You hear {enemy_count} enemies nearby![/red]")
+    rprint(f"[red]You hear {enemy_count} enemies nearby![/red]\n")
     for _ in range(enemy_count):
         result = spawn_enemy_and_fight(room_name, encounter['enemy_classes'])
         if result != 'win':

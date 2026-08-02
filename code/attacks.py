@@ -20,6 +20,13 @@ from inventory import (
 )
 from rich import print as rprint
 
+def combat_separator():
+    '''
+    Prints a separator between combat log sections.
+    '''
+
+    rprint('\n[grey66]----[/grey66]\n')
+
 def roll_damage(damage):
     '''
     Rolls damage from a dice expression such as 1d6+2, 2d8, or 2d8+4+2d6.
@@ -94,7 +101,7 @@ def choose_player_attack(player):
     :rtype: dict or str
     '''
 
-    rprint('[bold]Choose your attack:[/bold]')
+    rprint('[bold]Choose your attack:[/bold]\n')
     for index, attack in enumerate(player.attacks, start=1):
         repeat_text = ''
         if attack.get('times', 1) > 1:
@@ -104,6 +111,7 @@ def choose_player_attack(player):
             f"(+{attack['hit_bonus']} to hit, {attack['damage']} damage{repeat_text})"
         )
 
+    combat_separator()
     choice = input('Attack, "use" an item, "u", "inv", "drop", or type "quit" to flee: ').lower()
     if choice == 'quit':
         return 'quit'
@@ -296,12 +304,16 @@ def fight_enemy(player, enemy):
                     rprint(f'Attack Roll {attack_number}/{attack_total}: {attack_roll}')
                 else:
                     rprint(f'Attack Roll: {attack_roll}')
+                rprint()
                 rprint(f'You use {player_attack["name"]} against the {enemy.name}')
 
                 if attack_hits:
                     rprint('[green]Your attack hits![/green]')
                 else:
                     rprint('[grey66]Your attack missed.[/grey66]')
+
+                if attack_number < attack_total:
+                    combat_separator()
 
             for attack_number, attack_roll, attack_hits in attack_results:
                 if attack_hits:
@@ -324,14 +336,17 @@ def fight_enemy(player, enemy):
                     )
                     return 'win'
 
+        combat_separator()
         enemy_attack= random.choice(enemy.attacks)
-        for _ in range(enemy_attack.get('times', 1)):
+        enemy_attack_total = enemy_attack.get('times', 1)
+        for enemy_attack_number in range(1, enemy_attack_total + 1):
             enemy_attack_roll= dice_roll('d20') + enemy_attack['hit_bonus']
 
             rprint(
                 f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] '
                 f'uses {enemy_attack["name"]}. Attack Roll: {enemy_attack_roll}'
             )
+            rprint()
 
             if enemy_attack_roll>= player.armour:
                 rprint(
@@ -352,6 +367,9 @@ def fight_enemy(player, enemy):
             if player.health<= 0:
                 break
 
+            if enemy_attack_number < enemy_attack_total:
+                combat_separator()
+
         if player.health<= 0:
             rprint('[bold][red]You Have Been Defeated![/red][/bold]')
             if ask_play_again():
@@ -361,7 +379,9 @@ def fight_enemy(player, enemy):
                 rprint('[red]Thank you for playing[/red]')
                 return False
 
+        combat_separator()
         rprint(
             f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | "
             f"Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]"
         )
+        combat_separator()
