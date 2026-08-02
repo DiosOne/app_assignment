@@ -111,15 +111,15 @@ def choose_player_class():
     :return: An instance of the selected player class.
     :rtype: Fighter | Mage | Ranger
     '''
-    rprint('Choose your class: [bold bright_red]Fighter[/bold bright_red], '
-           '[bold purple]Mage[/bold purple], [bold green]Ranger[/bold green]')
+    rprint('Choose your class: [bold bright_red]1. Fighter[/bold bright_red], '
+           '[bold purple]2. Mage[/bold purple], [bold green]3. Ranger[/bold green]')
     while True:
-        choice= input('Class: ').capitalize()
-        if choice== 'Fighter':
+        choice= input('Class: ').strip().lower()
+        if choice in ['1', 'fighter']:
             return Fighter()
-        elif choice== 'Mage':
+        elif choice in ['2', 'mage']:
             return Mage()
-        elif choice== 'Ranger':
+        elif choice in ['3', 'ranger']:
             return Ranger()
         else:
             rprint('Invalid class, try again')
@@ -185,7 +185,7 @@ def enemy_count_for_room(room_name):
     return random.randint(min_enemies + scaling_bonus, max_enemies + scaling_bonus)
 
 
-def show_room(room_name):
+def show_room(room_name, show_exit_rooms=False):
     '''
     Displays the current room's name, description, and available exits using a styled panel.
 
@@ -193,44 +193,108 @@ def show_room(room_name):
     :type room_name: str
     '''
     room= rooms[room_name]
-    exits= ', '.join(
-        f'{direction}({direction_shortcuts.get(direction, direction)})'
-        for direction in room['exits'].keys()
-    )
+    exits = format_exits(room_name, show_exit_rooms)
     search_hint = ''
-    if room_name in searched_rooms or room_name in fought_rooms:
+    if room_name in searched_rooms:
         search_hint = '\n\n[grey66]This room is now empty.[/grey66]'
     elif room_name in searchable_rooms:
-        search_hint = '\n\n[grey66]Maybe you should look around this room.[/grey66]'
+        attempts = search_attempts.get(room_name, 0)
+        if attempts == 1:
+            search_hint = '\n\n[grey66]Hmm strange, maybe have a better look?[/grey66]'
+        elif attempts == 2:
+            search_hint = "\n\n[grey66]It definetly feels like I'm missing something here...[/grey66]"
+        else:
+            search_hint = '\n\n[grey66]Maybe you should look around this room.[/grey66]'
+    elif room_name in fought_rooms:
+        search_hint = '\n\n[grey66]This room is now empty.[/grey66]'
     rprint(Panel(
         f'[bright_blue]{room.get("display_name", room_name)}[/bright_blue]\n\n'
         f'{room["description"]}{search_hint}\n\n'
-        f'[grey66]Exits:[/grey66]{exits}',
+        f'[grey66]Exits: [/grey66]{exits}',
         title='Room Info'
     ))
 
-def normalize_move(move):
+def format_exits(room_name, show_exit_rooms=False):
+    '''
+    Formats exits for room display.
+
+    :param room_name: Room whose exits are being displayed.
+    :type room_name: str
+    :param show_exit_rooms: Whether to include destination room names.
+    :type show_exit_rooms: bool
+    :return: Formatted exit list.
+    :rtype: str
+    '''
+
+    exit_labels = []
+    for index, (direction, destination) in enumerate(rooms[room_name]['exits'].items(), start=1):
+        exit_label = f'{index}. {format_direction(direction)}'
+        if show_exit_rooms:
+            exit_label = f'{exit_label} - {destination}'
+        exit_labels.append(exit_label)
+    return ', '.join(exit_labels)
+
+def format_direction(direction):
+    '''
+    Formats a direction with its shortcut at the front.
+
+    :param direction: Full direction name.
+    :type direction: str
+    :return: Formatted direction label.
+    :rtype: str
+    '''
+
+    shortcut = direction_shortcuts.get(direction)
+    if shortcut is None:
+        return direction
+    if shortcut in ['NE', 'NW', 'SE', 'SW']:
+        return f'({shortcut}){direction[1:].lower()}'
+    if direction.startswith(shortcut):
+        return f'({shortcut}){direction[len(shortcut):]}'
+    return f'({shortcut}){direction}'
+
+def numbered_exits(room_name):
+    '''
+    Maps displayed exit numbers to room exit directions.
+
+    :param room_name: Current room name.
+    :type room_name: str
+    :return: Number-to-direction mapping.
+    :rtype: dict
+    '''
+
+    return {
+        str(index):direction
+        for index, direction in enumerate(rooms[room_name]['exits'].keys(), start=1)
+    }
+
+def normalize_move(move, room_name):
     '''
     Converts full direction names and direction shortcuts into room exit keys.
 
     :param move: Player movement input.
     :type move: str
+    :param room_name: Current room name.
+    :type room_name: str
     :return: Normalized movement command.
     :rtype: str
     '''
 
     move = move.strip()
-    if move.lower() in ['inventory', 'inv']:
+    if move in numbered_exits(room_name):
+        return numbered_exits(room_name)[move]
+
+    if move.lower() in ['inventory', 'inv', 'i']:
         return 'Inventory'
     if move.lower() in ['look', 'l']:
         return 'Look'
-    if move.lower() in ['look around', 'look again', 'search']:
+    if move.lower() in ['look around', 'look again', 'search', 's']:
         return 'Search'
-    if move.lower() in ['use', 'use item']:
+    if move.lower() in ['use', 'use item', 'u']:
         return 'Use'
-    if move.lower() in ['drop', 'drop item']:
+    if move.lower() in ['drop', 'drop item', 'd']:
         return 'Drop'
-    if move.lower() == 'quit':
+    if move.lower() in ['quit', 'q']:
         return 'Quit'
 
     direction = move.capitalize()
@@ -497,8 +561,6 @@ def room_encounter(room_name):
             result = spawn_enemies_and_fight(room_name)
             if result is not None:
                 return result
-        else:
-            rprint("[grey66]This room is now empty.[/grey66]")
         return
 
 def ask_play_again():
@@ -670,7 +732,7 @@ def game_loop():
                 break
 
         show_room(current_room)
-        if current_room in encounter_rooms:
+        if current_room in encounter_rooms and current_room not in fought_rooms:
             result = room_encounter(current_room)
             if result is False:
                 break
@@ -680,18 +742,18 @@ def game_loop():
             if result == 'win':
                 show_room(current_room)
 
-        search_command = 'Look Again' if current_room in failed_search_rooms else 'Search Room'
         move = Prompt.ask(
             f'What direction do you wish to move? '
-            f'(or type Look, {search_command}, Use, Drop, Quit, Inventory, or Inv)'
+            f'(or type [bold]L[/bold]ook, [bold]S[/bold]earch, '
+            f'[bold]U[/bold]se, [bold]D[/bold]rop, [bold]Q[/bold]uit, or [bold]I[/bold]nv)'
         )
-        move = normalize_move(move)
+        move = normalize_move(move, current_room)
 
         if move == 'Inventory':
             show_inv(player)
             continue
         if move == 'Look':
-            show_room(current_room)
+            show_room(current_room, show_exit_rooms=True)
             continue
         if move == 'Search':
             search_room(current_room)

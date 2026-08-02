@@ -140,4 +140,7 @@ def random_room_treasure(room_name):
     if room_name in medium_chest_rooms and random.randint(1, 100) <= 35:
         drops.extend(medium_chest())
 
+    if not drops:
+        drops.append(('Gold', random.randint(5, 15)))
+
     return [(item, quantity) for item, quantity in drops if quantity > 0]
