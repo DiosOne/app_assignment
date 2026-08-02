@@ -21,6 +21,7 @@ Requires:
 import random
 from rooms import rooms
 from rich import print as rprint
+from rich.align import Align
 from rich.panel import Panel
 from rich.prompt import Prompt
 from advent import Fighter, Mage, Ranger, show_stats
@@ -101,6 +102,22 @@ shop_attack_unlocks = {
     'Spell Scroll: Flame Lance':{'class':'Mage', 'attack':{'name':'Flame Lance', 'hit_bonus':6, 'damage':'2d10'}}
 }
 
+def show_title_screen():
+    '''
+    Displays the game title screen and character choices.
+    '''
+
+    rprint(Panel(
+        Align.center(
+        '[bold underline]..The Dungeon..[/bold underline]\n\n'
+        'Choose Your Character\n\n'
+        '[bold bright_red]1. Fighter[/bold bright_red]\n'
+        '[bold purple]2. Mage[/bold purple]\n'
+        '[bold green]3. Ranger[/bold green]'
+        ),
+        title='Character Select'
+    ))
+
 def choose_player_class():
     '''
     Prompts the player to choose a character class.
@@ -111,8 +128,7 @@ def choose_player_class():
     :return: An instance of the selected player class.
     :rtype: Fighter | Mage | Ranger
     '''
-    rprint('Choose your class: [bold bright_red]1. Fighter[/bold bright_red], '
-           '[bold purple]2. Mage[/bold purple], [bold green]3. Ranger[/bold green]')
+    show_title_screen()
     while True:
         choice= input('Class: ').strip().lower()
         if choice in ['1', 'fighter']:
@@ -236,7 +252,7 @@ def format_exits(room_name, show_exit_rooms=False):
 
 def format_direction(direction):
     '''
-    Formats a direction with its shortcut at the front.
+    Formats a direction as its movement shortcut.
 
     :param direction: Full direction name.
     :type direction: str
@@ -247,11 +263,7 @@ def format_direction(direction):
     shortcut = direction_shortcuts.get(direction)
     if shortcut is None:
         return direction
-    if shortcut in ['NE', 'NW', 'SE', 'SW']:
-        return f'({shortcut}){direction[1:].lower()}'
-    if direction.startswith(shortcut):
-        return f'({shortcut}){direction[len(shortcut):]}'
-    return f'({shortcut}){direction}'
+    return f'({shortcut})'
 
 def numbered_exits(room_name):
     '''
