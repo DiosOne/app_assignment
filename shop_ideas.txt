@@ -5,6 +5,7 @@ Highlight the number and first word of each as indicators what to input.
 Bump prices to force difficult choices.
 when buying a new spell or weapon, make it useable from the inventory and then move it to the attack list
 remove the item from the shop list when purchased until a new game is not chosen and the list resets.
+dont have all weapons available from the first time the shop is entered
 
 temp ac boost potions
   -
