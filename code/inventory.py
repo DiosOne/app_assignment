@@ -18,6 +18,8 @@ item_weights = {
     'Gold':0.1,
     'Ruby':3,
     'Rubies':3,
+    'Sapphire':3,
+    'Sapphires':3,
     'Emerald':3,
     'Emeralds':3,
     'Garnet':2,
@@ -43,6 +45,12 @@ item_weights = {
     'Spell Scroll: Lightning Bolt':1,
     'Spell Scroll: Acid Arrow':1,
     'Spell Scroll: Flame Lance':1,
+    'Spell Scroll: Spark':1,
+    'Spell Scroll: Frost Dart':1,
+    'Fire Arrow':2,
+    'Piercing Arrow':2,
+    'Minor Guard Potion':10,
+    'Major Guard Potion':20,
     'Small Health Potion':10,
     'Medium Health Potion':20,
     'Large Health Potion':40
@@ -152,7 +160,7 @@ def show_inv(player=None):
         rprint('[dodger_blue1][bold]Your inventory: [/bold][/dodger_blue1]')
         counted= count_inv()
         for item, count in counted.items():
-            rprint(f'- {item} x {count}')
+            rprint(f'- {item} x [bright_yellow]{count}[/bright_yellow]')
 
 def clear_inv():
     '''

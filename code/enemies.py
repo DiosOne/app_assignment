@@ -8,6 +8,17 @@ Includes:
 
 Used in the game's combat system to create and manage enemy encounters.
 '''
+import re
+from rich import print as rprint
+
+SUN_YELLOW = '#FCCF03'
+
+def colour_dice(damage):
+    '''
+    Colours dice expressions for display.
+    '''
+
+    return re.sub(r'\d+d\d+', rf'[{SUN_YELLOW}]\g<0>[/{SUN_YELLOW}]', damage)
 
 class Enemy:
     '''
@@ -175,14 +186,14 @@ def show_enemy_stats(enemy):
     '''
     Displays the stats of a given enemy character.
     '''
-    print(enemy.name)
-    print('-' * 10)
-    print(f'Health: {enemy.health}')
-    print(f'Armour Class: {enemy.armour}')
+    rprint(enemy.name)
+    rprint('-' * 10)
+    rprint(f'Health: [cyan]{enemy.health}[/cyan]')
+    rprint(f'Armour Class: [cyan]{enemy.armour}[/cyan]')
     for attack in enemy.attacks:
-        print(
-            f"{attack['name']}: +{attack['hit_bonus']} to hit, "
-            f"{attack['damage']} damage"
+        rprint(
+            f"{attack['name']}: [cyan]+{attack['hit_bonus']} to hit[/cyan], "
+            f"{colour_dice(attack['damage'])} damage"
         )
-    print('*' * 10)
-    print()
+    rprint('*' * 10)
+    rprint()

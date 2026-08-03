@@ -13,6 +13,7 @@ Dependencies:
 '''
 
 import random
+import re
 import time
 from dice_rolls import dice_roll
 from inventory import (
@@ -25,6 +26,8 @@ from rich import print as rprint
 console = Console()
 enemy_action_pause = 3
 enemy_result_pause = 2
+SUN_YELLOW = '#FCCF03'
+DARK_VIOLET = '#9400D3'
 
 def combat_separator():
     '''
@@ -63,10 +66,18 @@ def format_damage_prompt(damage):
     :rtype: str
     '''
 
+    damage = colour_dice(damage)
     parts = damage.split('+')
     if len(parts) == 1:
         return damage
     return parts[0] + ''.join(f'(+{part})' for part in parts[1:])
+
+def colour_dice(damage):
+    '''
+    Colours dice expressions for display.
+    '''
+
+    return re.sub(r'\d+d\d+', rf'[{SUN_YELLOW}]\g<0>[/{SUN_YELLOW}]', damage)
 
 def attack_verb(player, attack):
     '''
@@ -87,7 +98,7 @@ def attack_roll_label(attack_number, attack_total):
     '''
 
     if attack_total > 1:
-        return f' ({attack_number}/{attack_total})'
+        return f' ([{DARK_VIOLET}]{attack_number}/{attack_total}[/{DARK_VIOLET}])'
     return ''
 
 def prompt_attack_roll(attack_number=1, attack_total=1):
@@ -95,7 +106,7 @@ def prompt_attack_roll(attack_number=1, attack_total=1):
     Prompts the player before rolling to hit.
     '''
 
-    input(f'Press Enter to roll for attack{attack_roll_label(attack_number, attack_total)}: ')
+    console.input(f'Press Enter to roll for attack{attack_roll_label(attack_number, attack_total)}: ')
 
 def prompt_damage_roll(attack, attack_roll):
     '''
@@ -128,10 +139,10 @@ def choose_player_attack(player):
     for index, attack in enumerate(player.attacks, start=1):
         repeat_text = ''
         if attack.get('times', 1) > 1:
-            repeat_text = f" x{attack['times']}"
+            repeat_text = f" [{DARK_VIOLET}]x{attack['times']}[/{DARK_VIOLET}]"
         rprint(
-            f"{index}. {attack['name']} "
-            f"(+{attack['hit_bonus']} to hit, {attack['damage']} damage{repeat_text})"
+            f"[bright_yellow]{index}.[/bright_yellow] {attack['name']} "
+            f"([cyan]+{attack['hit_bonus']} to hit[/cyan], {colour_dice(attack['damage'])} damage{repeat_text})"
         )
 
     combat_separator()
@@ -172,7 +183,11 @@ def drop_inventory_item():
     items = list(counted.keys())
     rprint('[bold]Choose an item to drop:[/bold]')
     for index, item in enumerate(items, start=1):
-        rprint(f'{index}. {item} x {counted[item]} ({item_weight(item)} weight each)')
+        rprint(
+            f'[bright_yellow]{index}.[/bright_yellow] {item} x '
+            f'[bright_yellow]{counted[item]}[/bright_yellow] '
+            f'([cyan]{item_weight(item)} weight each[/cyan])'
+        )
 
     choice = input('Item number or name: ').strip().lower()
     selected_item = None
@@ -197,7 +212,7 @@ def drop_inventory_item():
 
     dropped = drop_item(selected_item, quantity)
     if dropped:
-        rprint(f'[yellow]You dropped {dropped} x {selected_item}.[/yellow]')
+        rprint(f'[yellow]You dropped [bright_yellow]{dropped}[/bright_yellow] x {selected_item}.[/yellow]')
         rprint(f'[cyan]Carry Weight: {current_weight()}/{max_carry_weight}[/cyan]')
     else:
         rprint('[red]You do not have that item.[/red]')
@@ -217,35 +232,55 @@ def use_health_potion(player):
         'Medium Health Potion':30,
         'Large Health Potion':50
     }
+    guard_potions = {
+        'Minor Guard Potion':2,
+        'Major Guard Potion':4
+    }
     counted = count_inv()
-    potions = [item for item in potion_healing if counted.get(item, 0) > 0]
+    usable_items = [
+        item
+        for item in list(potion_healing.keys()) + list(guard_potions.keys())
+        if counted.get(item, 0) > 0
+    ]
 
-    if not potions:
+    if not usable_items:
         rprint('[grey66]You do not have any usable items.[/grey66]')
         return False
 
-    if player.health >= player.max_health:
-        rprint('[grey66]You are already at full health.[/grey66]')
-        return False
-
     rprint('[bold]Choose an item to use:[/bold]')
-    for index, potion in enumerate(potions, start=1):
-        rprint(f'{index}. {potion} x {counted[potion]}')
+    for index, item in enumerate(usable_items, start=1):
+        rprint(
+            f'[bright_yellow]{index}.[/bright_yellow] {item} x '
+            f'[bright_yellow]{counted[item]}[/bright_yellow]'
+        )
 
     choice = input('Item number or name: ').strip().lower()
     selected_item = None
     if choice.isdigit():
         item_index = int(choice) - 1
-        if 0 <= item_index < len(potions):
-            selected_item = potions[item_index]
+        if 0 <= item_index < len(usable_items):
+            selected_item = usable_items[item_index]
     else:
-        for potion in potions:
-            potion_shortcut = potion[0].lower()
-            if choice in [potion.lower(), potion_shortcut]:
-                selected_item = potion
+        for item in usable_items:
+            item_shortcut = item[0].lower()
+            if choice in [item.lower(), item_shortcut]:
+                selected_item = item
 
     if selected_item is None:
         rprint('[red]Invalid item choice.[/red]')
+        return False
+
+    if selected_item in guard_potions:
+        remove_from_inv(selected_item)
+        player.armour += guard_potions[selected_item]
+        rprint(
+            f'[bright_green]You use a {selected_item}. '
+            f'Armour Class is now [cyan]{player.armour}[/cyan] for this fight.[/bright_green]'
+        )
+        return True
+
+    if player.health >= player.max_health:
+        rprint('[grey66]You are already at full health.[/grey66]')
         return False
 
     remove_from_inv(selected_item)
@@ -254,7 +289,7 @@ def use_health_potion(player):
     player.health = min(player.max_health, player.health + healing)
     rprint(
         f'[bright_green]You use a {selected_item} and recover '
-        f'{player.health - old_health} hit points.[/bright_green]'
+        f'[bright_yellow]{player.health - old_health}[/bright_yellow] hit points.[/bright_green]'
     )
     rprint(f'[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}]/{player.max_health}[/cyan]')
     return True
@@ -294,137 +329,140 @@ def fight_enemy(player, enemy, opening_attack=None):
     :rtype: str or bool
     '''
 
-    while player.health > 0 and enemy.health > 0:
-        if opening_attack is not None:
-            player_attack = opening_attack['attack']
-            opening_attack_total = opening_attack['remaining']
-            opening_attack = None
-        else:
-            player_attack = choose_player_attack(player)
-            opening_attack_total = None
+    starting_armour = player.armour
+    try:
+        while player.health > 0 and enemy.health > 0:
+            if opening_attack is not None:
+                player_attack = opening_attack['attack']
+                opening_attack_total = opening_attack['remaining']
+                opening_attack = None
+            else:
+                player_attack = choose_player_attack(player)
+                opening_attack_total = None
 
-        if player_attack == 'quit':
-            rprint('[yellow]You fled the fight![/yellow]')
-            return 'quit'
+            if player_attack == 'quit':
+                rprint('[yellow]You fled the fight![/yellow]')
+                return 'quit'
 
-        if player_attack == 'inventory':
-            show_inv(player)
-            continue
-
-        if player_attack == 'drop':
-            drop_inventory_item()
-            continue
-
-        used_item = False
-        if player_attack == 'use':
-            if not use_health_potion(player):
+            if player_attack == 'inventory':
+                show_inv(player)
                 continue
-            used_item = True
 
-        if player_attack is None:
-            rprint('Invalid Attack. Please choose one of the listed attacks')
-            continue
+            if player_attack == 'drop':
+                drop_inventory_item()
+                continue
 
-        if not used_item:
-            attack_total = opening_attack_total or player_attack.get('times', 1)
-            rprint(
-                f'You {attack_verb(player, player_attack)} {player_attack["name"]} '
-                f'against the [{enemy.colour}]{enemy.name}[/{enemy.colour}]'
-            )
-            for attack_number in range(1, attack_total + 1):
-                prompt_attack_roll(attack_number, attack_total)
-                combat_separator()
-                attack_roll= dice_roll('d20') + player_attack['hit_bonus']
-                attack_hits = attack_roll >= enemy.armour
+            used_item = False
+            if player_attack == 'use':
+                if not use_health_potion(player):
+                    continue
+                used_item = True
 
-                if attack_hits:
-                    damage_roll= prompt_damage_roll(player_attack, attack_roll)
-                    enemy.health-= damage_roll
-                    rprint(
-                        f'[green]You do {damage_roll} points of damage to the '
-                        f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
-                    )
-                else:
-                    rprint(
-                        f'[grey66]Attack Roll: [bright_yellow]{attack_roll}[/bright_yellow]. '
-                        f'Your attack misses![/grey66]'
-                    )
+            if player_attack is None:
+                rprint('Invalid Attack. Please choose one of the listed attacks')
+                continue
 
-                if enemy.health<= 0:
-                    rprint()
-                    rprint(
-                        f'[green]You defeated the [bold]'
-                        f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
-                    )
-                    remaining_attacks = attack_total - attack_number
-                    if remaining_attacks > 0:
-                        return {
-                            'status':'win',
-                            'remaining_attack':{
-                                'attack':player_attack,
-                                'remaining':remaining_attacks
-                            }
-                        }
-                    return 'win'
-
-                if attack_number < attack_total:
+            if not used_item:
+                attack_total = opening_attack_total or player_attack.get('times', 1)
+                rprint(
+                    f'You {attack_verb(player, player_attack)} {player_attack["name"]} '
+                    f'against the [{enemy.colour}]{enemy.name}[/{enemy.colour}]'
+                )
+                for attack_number in range(1, attack_total + 1):
+                    prompt_attack_roll(attack_number, attack_total)
                     combat_separator()
+                    attack_roll= dice_roll('d20') + player_attack['hit_bonus']
+                    attack_hits = attack_roll >= enemy.armour
 
-        combat_separator()
-        enemy_attack= random.choice(enemy.attacks)
-        enemy_attack_total = enemy_attack.get('times', 1)
-        for enemy_attack_number in range(1, enemy_attack_total + 1):
-            enemy_attack_roll= dice_roll('d20') + enemy_attack['hit_bonus']
+                    if attack_hits:
+                        damage_roll= prompt_damage_roll(player_attack, attack_roll)
+                        enemy.health-= damage_roll
+                        rprint(
+                            f'[green]You do [bright_yellow]{damage_roll}[/bright_yellow] points of damage to the '
+                            f'[bold][{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
+                        )
+                    else:
+                        rprint(
+                            f'[grey66]Attack Roll: [bright_yellow]{attack_roll}[/bright_yellow]. '
+                            f'Your attack misses![/grey66]'
+                        )
 
-            rprint(f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] attacks you.')
-            time.sleep(enemy_action_pause)
-            rprint()
-            rprint(
-                f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] '
-                f'uses {enemy_attack["name"]}.'
-            )
-            time.sleep(enemy_result_pause)
-            rprint()
-            rprint(f'Attack Roll: [bright_yellow]{enemy_attack_roll}[/bright_yellow]')
-            time.sleep(enemy_result_pause)
+                    if enemy.health<= 0:
+                        rprint()
+                        rprint(
+                            f'[green]You defeated the [bold]'
+                            f'[{enemy.colour}]{enemy.name}[/{enemy.colour}][/bold]![/green]'
+                        )
+                        remaining_attacks = attack_total - attack_number
+                        if remaining_attacks > 0:
+                            return {
+                                'status':'win',
+                                'remaining_attack':{
+                                    'attack':player_attack,
+                                    'remaining':remaining_attacks
+                                }
+                            }
+                        return 'win'
 
-            if enemy_attack_roll>= player.armour:
+                    if attack_number < attack_total:
+                        combat_separator()
+
+            combat_separator()
+            enemy_attack= random.choice(enemy.attacks)
+            enemy_attack_total = enemy_attack.get('times', 1)
+            for enemy_attack_number in range(1, enemy_attack_total + 1):
+                enemy_attack_roll= dice_roll('d20') + enemy_attack['hit_bonus']
+
+                rprint(f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] attacks you.')
+                time.sleep(enemy_action_pause)
+                rprint()
                 rprint(
                     f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] '
-                    f'rolls {enemy_attack["damage"]} for damage.'
+                    f'uses {enemy_attack["name"]}.'
                 )
-                combat_separator()
                 time.sleep(enemy_result_pause)
-                enemy_damage= roll_damage(enemy_attack['damage'])
+                rprint()
+                rprint(f'Attack Roll: [bright_yellow]{enemy_attack_roll}[/bright_yellow]')
+                time.sleep(enemy_result_pause)
 
-                rprint(
-                    f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}]'
-                    f'[/bold] does {enemy_damage} damage![/red]')
-                player.health-= enemy_damage
-            else:
-                rprint(
-                    f'[blue]The [bold][{enemy.colour}]{enemy.name}'
-                    f'[/{enemy.colour}][/bold] misses![/blue]')
+                if enemy_attack_roll>= player.armour:
+                    rprint(
+                        f'The [{enemy.colour}]{enemy.name}[/{enemy.colour}] '
+                        f'rolls {colour_dice(enemy_attack["damage"])} for damage.'
+                    )
+                    combat_separator()
+                    time.sleep(enemy_result_pause)
+                    enemy_damage= roll_damage(enemy_attack['damage'])
+
+                    rprint(
+                        f'[red]The [bold][{enemy.colour}]{enemy.name}[/{enemy.colour}]'
+                        f'[/bold] does [bright_yellow]{enemy_damage}[/bright_yellow] damage![/red]')
+                    player.health-= enemy_damage
+                else:
+                    rprint(
+                        f'[blue]The [bold][{enemy.colour}]{enemy.name}'
+                        f'[/{enemy.colour}][/bold] misses![/blue]')
+
+                if player.health<= 0:
+                    break
+
+                if enemy_attack_number < enemy_attack_total:
+                    combat_separator()
 
             if player.health<= 0:
-                break
+                rprint('[bold][red]You Have Been Defeated![/red][/bold]')
+                if ask_play_again():
+                    return True
 
-            if enemy_attack_number < enemy_attack_total:
-                combat_separator()
-
-        if player.health<= 0:
-            rprint('[bold][red]You Have Been Defeated![/red][/bold]')
-            if ask_play_again():
-                return True
-
-            else:
                 rprint('[red]Thank you for playing[/red]')
                 return False
 
-        combat_separator()
-        time.sleep(enemy_action_pause)
-        rprint(
-            f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | "
-            f"Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]"
-        )
-        combat_separator()
+            combat_separator()
+            time.sleep(enemy_action_pause)
+            rprint(
+                f"[cyan]Your Health: [{player.colour}]{player.health}[/{player.colour}] | "
+                f"Enemy Health: [{enemy.colour}]{enemy.health}[/{enemy.colour}][/cyan]"
+            )
+            combat_separator()
+    finally:
+        player.armour = starting_armour

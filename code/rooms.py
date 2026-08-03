@@ -35,7 +35,7 @@ rooms= {
         'exits':{'North':'Armoury', 'East':'Dining Hall', 'West':'Bedroom', 'Northeast':'Scullery'}
     },
 
-    'Library':{
+    'The Library':{
         'description': 'A small room with dusty bookshelves lit by numerous cadelabras',
         'exits':{'West':'East Wing', 'Northwest':'Chapel'}
     },

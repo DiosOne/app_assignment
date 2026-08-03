@@ -1,6 +1,16 @@
 '''Module defining player character classes and stats display functions for the adventure game.
 '''
+import re
 from rich import print as rprint
+
+SUN_YELLOW = '#FCCF03'
+
+def colour_dice(damage):
+    '''
+    Colours dice expressions for display.
+    '''
+
+    return re.sub(r'\d+d\d+', rf'[{SUN_YELLOW}]\g<0>[/{SUN_YELLOW}]', damage)
 
 class Adventurer:
     '''Base class for all adventurer player characters.
@@ -86,12 +96,12 @@ def show_stats(character):
     '''
     rprint(f'[{character.colour}]{character.__class__.__name__}[/{character.colour}]')
     rprint('-' * 10)
-    rprint(f'Health: {character.health}')
-    rprint(f'Armour Class: {character.armour}')
+    rprint(f'Health: [cyan]{character.health}[/cyan]')
+    rprint(f'Armour Class: [cyan]{character.armour}[/cyan]')
     for attack in character.attacks:
         rprint(
-            f"{attack['name']}: +{attack['hit_bonus']} to hit, "
-            f"{attack['damage']} damage"
+            f"{attack['name']}: [cyan]+{attack['hit_bonus']} to hit[/cyan], "
+            f"{colour_dice(attack['damage'])} damage"
         )
     rprint('*' * 10)
     rprint()

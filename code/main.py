@@ -19,6 +19,7 @@ Requires:
 '''
 
 import random
+import re
 from rooms import rooms
 from rich import print as rprint
 from rich.align import Align
@@ -29,10 +30,13 @@ from enemies import BoneDevil, Ghost, Goblin, Minotaur, Ratking, Skeleton, Thug,
 from loot_table import random_enemy, random_room_treasure
 from attacks import combat_separator, fight_enemy
 from inventory import (
-    add_to_inv, can_carry, clear_inv, count_inv, current_weight,
+    add_to_inv, can_carry, clear_inv, count_inv, current_weight, displayed_weight,
     drop_item, item_weight, max_carry_weight, remove_from_inv, show_inv
 )
 
+LIGHT_CYAN = '#E0FFFF'
+DARK_VIOLET = '#9400D3'
+SUN_YELLOW = '#FCCF03'
 
 player= None
 run_count= 1
@@ -42,6 +46,15 @@ searched_rooms= set()
 failed_search_rooms= set()
 search_attempts= {}
 room_messages= {}
+gem_run_limits = {
+    'Garnet':30,
+    'Sapphire':20,
+    'Ruby':10,
+    'Emerald':5,
+    'Diamond':2
+}
+gem_run_counts = {gem:0 for gem in gem_run_limits}
+shop_purchases = set()
 searchable_rooms = [
     'Bedroom', 'Library', 'Scullery',
     'Guard Post', 'Servants Quarters', 'Dining Hall',
@@ -84,23 +97,34 @@ direction_shortcuts = {
 shortcut_directions = {shortcut:direction for direction, shortcut in direction_shortcuts.items()}
 
 shop_attack_unlocks = {
-    'Greatsword':{'class':'Fighter', 'attack':{'name':'Greatsword', 'hit_bonus':5, 'damage':'2d6+3'}},
-    'Battleaxe':{'class':'Fighter', 'attack':{'name':'Battleaxe', 'hit_bonus':5, 'damage':'1d10+3'}},
-    'Warhammer':{'class':'Fighter', 'attack':{'name':'Warhammer', 'hit_bonus':5, 'damage':'1d8+3'}},
-    'Halberd':{'class':'Fighter', 'attack':{'name':'Halberd', 'hit_bonus':4, 'damage':'1d10+2'}},
-    'Handaxe':{'class':'Fighter', 'attack':{'name':'Handaxe', 'hit_bonus':5, 'damage':'1d6+3'}},
+    'Greatsword':{'classes':['Fighter'], 'attack':{'name':'Greatsword', 'hit_bonus':5, 'damage':'2d6+3'}, 'price':520, 'min_run':2},
+    'Battleaxe':{'classes':['Fighter'], 'attack':{'name':'Battleaxe', 'hit_bonus':5, 'damage':'1d10+3'}, 'price':430, 'min_run':1},
+    'Warhammer':{'classes':['Fighter'], 'attack':{'name':'Warhammer', 'hit_bonus':5, 'damage':'1d8+3'}, 'price':390, 'min_run':1},
+    'Halberd':{'classes':['Fighter'], 'attack':{'name':'Halberd', 'hit_bonus':4, 'damage':'1d10+2'}, 'price':380, 'min_run':2},
+    'Handaxe':{'classes':['Fighter', 'Ranger'], 'attack':{'name':'Handaxe', 'hit_bonus':5, 'damage':'1d6+3'}, 'price':220, 'min_run':1},
 
-    'Twin Daggers':{'class':'Ranger', 'attack':{'name':'Twin Daggers', 'hit_bonus':5, 'damage':'1d4+2', 'times':2}},
-    'Rapier':{'class':'Ranger', 'attack':{'name':'Rapier', 'hit_bonus':5, 'damage':'1d8+2'}},
-    'Hunter Bow':{'class':'Ranger', 'attack':{'name':'Hunter Bow', 'hit_bonus':5, 'damage':'1d8+3'}},
-    'Crossbow':{'class':'Ranger', 'attack':{'name':'Crossbow', 'hit_bonus':4, 'damage':'1d10+2'}},
-    'Poison Arrow':{'class':'Ranger', 'attack':{'name':'Poison Arrow', 'hit_bonus':4, 'damage':'1d8+1+1d6'}},
+    'Twin Daggers':{'classes':['Ranger'], 'attack':{'name':'Twin Daggers', 'hit_bonus':5, 'damage':'1d4+2', 'times':2}, 'price':320, 'min_run':1},
+    'Rapier':{'classes':['Ranger'], 'attack':{'name':'Rapier', 'hit_bonus':5, 'damage':'1d8+2'}, 'price':360, 'min_run':1},
+    'Hunter Bow':{'classes':['Ranger'], 'attack':{'name':'Hunter Bow', 'hit_bonus':5, 'damage':'1d8+3'}, 'price':460, 'min_run':2},
+    'Crossbow':{'classes':['Ranger', 'Fighter'], 'attack':{'name':'Crossbow', 'hit_bonus':4, 'damage':'1d10+2'}, 'price':390, 'min_run':1},
+    'Fire Arrow':{'classes':['Ranger'], 'attack':{'name':'Fire Arrow', 'hit_bonus':4, 'damage':'1d8+1+1d6'}, 'price':260, 'min_run':2},
+    'Piercing Arrow':{'classes':['Ranger'], 'attack':{'name':'Piercing Arrow', 'hit_bonus':5, 'damage':'1d10+2'}, 'price':300, 'min_run':2},
 
-    'Spell Scroll: Ice Knife':{'class':'Mage', 'attack':{'name':'Ice Knife', 'hit_bonus':5, 'damage':'1d10+1d6'}},
-    'Spell Scroll: Magic Missile':{'class':'Mage', 'attack':{'name':'Magic Missile', 'hit_bonus':99, 'damage':'1d4+1', 'times':3}},
-    'Spell Scroll: Lightning Bolt':{'class':'Mage', 'attack':{'name':'Lightning Bolt', 'hit_bonus':6, 'damage':'3d8'}},
-    'Spell Scroll: Acid Arrow':{'class':'Mage', 'attack':{'name':'Acid Arrow', 'hit_bonus':5, 'damage':'2d6+1d4'}},
-    'Spell Scroll: Flame Lance':{'class':'Mage', 'attack':{'name':'Flame Lance', 'hit_bonus':6, 'damage':'2d10'}}
+    'Spell Scroll: Spark':{'classes':['Fighter', 'Ranger', 'Mage'], 'attack':{'name':'Spark', 'hit_bonus':4, 'damage':'1d6'}, 'price':180, 'min_run':1},
+    'Spell Scroll: Frost Dart':{'classes':['Fighter', 'Ranger', 'Mage'], 'attack':{'name':'Frost Dart', 'hit_bonus':4, 'damage':'1d8'}, 'price':240, 'min_run':1},
+    'Spell Scroll: Ice Knife':{'classes':['Mage'], 'attack':{'name':'Ice Knife', 'hit_bonus':5, 'damage':'1d10+1d6'}, 'price':420, 'min_run':2},
+    'Spell Scroll: Magic Missile':{'classes':['Mage'], 'attack':{'name':'Magic Missile', 'hit_bonus':99, 'damage':'1d4+1', 'times':3}, 'price':500, 'min_run':2},
+    'Spell Scroll: Lightning Bolt':{'classes':['Mage'], 'attack':{'name':'Lightning Bolt', 'hit_bonus':6, 'damage':'3d8'}, 'price':720, 'min_run':3},
+    'Spell Scroll: Acid Arrow':{'classes':['Mage'], 'attack':{'name':'Acid Arrow', 'hit_bonus':5, 'damage':'2d6+1d4'}, 'price':460, 'min_run':2},
+    'Spell Scroll: Flame Lance':{'classes':['Mage'], 'attack':{'name':'Flame Lance', 'hit_bonus':6, 'damage':'2d10'}, 'price':680, 'min_run':3}
+}
+
+shop_consumables = {
+    'Small Health Potion':{'price':60, 'min_run':1},
+    'Medium Health Potion':{'price':140, 'min_run':1},
+    'Large Health Potion':{'price':260, 'min_run':2},
+    'Minor Guard Potion':{'price':220, 'min_run':2},
+    'Major Guard Potion':{'price':420, 'min_run':3}
 }
 
 def show_title_screen():
@@ -112,9 +136,9 @@ def show_title_screen():
         Align.center(
         '[bold underline]..The Dungeon..[/bold underline]\n\n'
         'Choose Your Character\n\n'
-        '[bold bright_red]1. Fighter[/bold bright_red]\n'
-        '[bold purple]2. Mage[/bold purple]\n'
-        '[bold green]3. Ranger[/bold green]'
+        '[bright_yellow]1.[/bright_yellow] [bold bright_red]Fighter[/bold bright_red]\n'
+        '[bright_yellow]2.[/bright_yellow] [bold purple]Mage[/bold purple]\n'
+        '[bright_yellow]3.[/bright_yellow] [bold green]Ranger[/bold green]'
         )
     ))
 
@@ -152,11 +176,12 @@ def apply_shop_attacks(character):
     class_name = character.__class__.__name__
     known_attacks = [attack['name'] for attack in character.attacks]
     for item_name, unlock in shop_attack_unlocks.items():
-        if counted.get(item_name, 0) and unlock['class'] == class_name:
+        if counted.get(item_name, 0) and class_name in unlock['classes']:
             attack = unlock['attack']
             if attack['name'] not in known_attacks:
                 character.attacks.append(attack)
                 known_attacks.append(attack['name'])
+                remove_from_inv(item_name)
                 rprint(f'[bright_green]{item_name} unlocks {attack["name"]}.[/bright_green]')
 
 def start_new_run(keep_inventory=False):
@@ -175,6 +200,8 @@ def start_new_run(keep_inventory=False):
     failed_search_rooms.clear()
     search_attempts.clear()
     room_messages.clear()
+    for gem in gem_run_counts:
+        gem_run_counts[gem] = 0
     if not keep_inventory:
         clear_inv()
         add_to_inv('Small Health Potion', 2)
@@ -216,17 +243,17 @@ def show_room(room_name, show_exit_rooms=False):
         search_hint = f'\n\n{room_messages[room_name]}'
     elif room_name in searched_rooms:
         if search_attempts.get(room_name, 0) >= 3:
-            search_hint = '\n\n[#E0FFFF]Whelp, guess its really empty.[/#E0FFFF]'
+            search_hint = f'\n\n[{LIGHT_CYAN}]Whelp, guess its really empty.[/{LIGHT_CYAN}]'
         else:
             search_hint = '\n\n[grey66]This room is empty.[/grey66]'
     elif room_name in searchable_rooms:
         attempts = search_attempts.get(room_name, 0)
         if attempts == 1:
-            search_hint = '\n\n[#E0FFFF]Hmm strange, maybe have a better look?[/#E0FFFF]'
+            search_hint = f'\n\n[{LIGHT_CYAN}]Hmm strange, maybe have a better look?[/{LIGHT_CYAN}]'
         elif attempts == 2:
-            search_hint = "\n\n[#E0FFFF]It definetly feels like I'm missing something here...[/#E0FFFF]"
+            search_hint = f"\n\n[{LIGHT_CYAN}]It definetly feels like I'm missing something here...[/{LIGHT_CYAN}]"
         else:
-            search_hint = '\n\n[#E0FFFF]Maybe you should look around this room.[/#E0FFFF]'
+            search_hint = f'\n\n[{LIGHT_CYAN}]Maybe you should look around this room.[/{LIGHT_CYAN}]'
     elif room_name in fought_rooms:
         search_hint = '\n\n[grey66]This room is empty.[/grey66]'
     rprint(Panel(
@@ -250,7 +277,7 @@ def format_exits(room_name, show_exit_rooms=False):
 
     exit_labels = []
     for index, (direction, destination) in enumerate(rooms[room_name]['exits'].items(), start=1):
-        exit_label = f'{index}. {format_direction(direction)}'
+        exit_label = f'[bright_yellow]{index}.[/bright_yellow] {format_direction(direction)}'
         if show_exit_rooms:
             exit_label = f'{exit_label} - {destination}'
         exit_labels.append(exit_label)
@@ -338,6 +365,13 @@ def add_loot(drops, source, announce=True):
         return [message]
 
     for item_name, quantity in drops:
+        gem_name = item_name.rstrip('s')
+        if gem_name in gem_run_limits:
+            remaining_gem_limit = gem_run_limits[gem_name] - gem_run_counts[gem_name]
+            quantity = min(quantity, remaining_gem_limit)
+            if quantity <= 0:
+                continue
+
         accepted = 0
         remaining = quantity
         while remaining > 0:
@@ -346,10 +380,12 @@ def add_loot(drops, source, announce=True):
                 collected_loot.append((item_name, 1))
                 accepted += 1
                 remaining -= 1
+                if gem_name in gem_run_counts:
+                    gem_run_counts[gem_name] += 1
             else:
                 rprint(
                     f'[yellow]You cannot carry all of the {item_name}; '
-                    f'carry weight is {current_weight()}/{max_carry_weight}.[/yellow]'
+                    f'carry weight is [cyan]{current_weight()}/{max_carry_weight}[/cyan].[/yellow]'
                 )
                 rprint('[grey66]Try dropping Junk or other low-value items.[/grey66]')
                 choice = input('Drop items now before leaving loot behind? [y/N]: ').strip().lower()
@@ -359,19 +395,19 @@ def add_loot(drops, source, announce=True):
                 break
         if accepted:
             if source.startswith('from the '):
-                message = f'You recieved {accepted} x {item_name}.'
+                message = f'You recieved [bright_yellow]{accepted}[/bright_yellow] x {item_name}.'
                 messages.append(message)
                 if announce:
                     rprint(f'[bright_green]{message}[/bright_green]')
             else:
-                message = f'You found {accepted} x {item_name} {source}!'
+                message = f'You found [bright_yellow]{accepted}[/bright_yellow] x {item_name} {source}!'
                 messages.append(message)
                 if announce:
                     rprint(f'[bright_green]{message}[/bright_green]')
         if remaining:
             message = (
-                f'You leave {remaining} x {item_name}; '
-                f'carry weight is {current_weight()}/{max_carry_weight}.'
+                f'You leave [bright_yellow]{remaining}[/bright_yellow] x {item_name}; '
+                f'carry weight is [cyan]{current_weight()}/{max_carry_weight}[/cyan].'
             )
             messages.append(message)
             if announce:
@@ -395,19 +431,19 @@ def search_room(room_name):
     }
 
     if room_name not in searchable_rooms:
-        room_messages[room_name] = '[#E0FFFF]There does not seem to be anything hidden here.[/#E0FFFF]'
+        room_messages[room_name] = f'[{LIGHT_CYAN}]There does not seem to be anything hidden here.[/{LIGHT_CYAN}]'
         return
 
     if room_name in searched_rooms:
         if search_attempts.get(room_name, 0) >= 3:
-            room_messages[room_name] = '[#E0FFFF]Whelp, guess its really empty.[/#E0FFFF]'
+            room_messages[room_name] = f'[{LIGHT_CYAN}]Whelp, guess its really empty.[/{LIGHT_CYAN}]'
         else:
             room_messages[room_name] = '[grey66]This room is empty.[/grey66]'
         return
 
     attempts = search_attempts.get(room_name, 0)
     if attempts >= 3:
-        room_messages[room_name] = '[#E0FFFF]Whelp, guess its really empty.[/#E0FFFF]'
+        room_messages[room_name] = f'[{LIGHT_CYAN}]Whelp, guess its really empty.[/{LIGHT_CYAN}]'
         return
 
     search_roll = random.randint(1, 20)
@@ -418,7 +454,7 @@ def search_room(room_name):
         if attempts >= 3:
             searched_rooms.add(room_name)
             failed_search_rooms.discard(room_name)
-        room_messages[room_name] = f'[#E0FFFF]{failure_messages[attempts]}[/#E0FFFF]'
+        room_messages[room_name] = f'[{LIGHT_CYAN}]{failure_messages[attempts]}[/{LIGHT_CYAN}]'
         return
 
     drops = random_room_treasure(room_name)
@@ -426,9 +462,9 @@ def search_room(room_name):
     failed_search_rooms.discard(room_name)
     loot_messages = add_loot(drops, f'while searching {room_name}', announce=False)
     room_messages[room_name] = (
-        '[#E0FFFF]You found a hidden treasure chest!\n'
+        f'[{LIGHT_CYAN}]You found a hidden treasure chest!\n'
         + '\n'.join(loot_messages)
-        + '[/#E0FFFF]'
+        + f'[/{LIGHT_CYAN}]'
     )
 
 def use_item():
@@ -455,7 +491,10 @@ def use_item():
 
     rprint('[bold]Choose an item to use:[/bold]')
     for index, potion in enumerate(potions, start=1):
-        rprint(f'{index}. {potion} x {counted[potion]}')
+        rprint(
+            f'[bright_yellow]{index}.[/bright_yellow] {potion} x '
+            f'[bright_yellow]{counted[potion]}[/bright_yellow]'
+        )
 
     choice = input('Item number or name: ').strip().lower()
     selected_item = None
@@ -483,7 +522,7 @@ def use_item():
     current_player.health = min(current_player.max_health, current_player.health + healing)
     rprint(
         f'[bright_green]You use a {selected_item} and recover '
-        f'{current_player.health - old_health} hit points.[/bright_green]'
+        f'[bright_yellow]{current_player.health - old_health}[/bright_yellow] hit points.[/bright_green]'
     )
     rprint(
         f'[cyan]Your Health: [{current_player.colour}]{current_player.health}'
@@ -503,7 +542,11 @@ def drop_inventory_item():
     items = list(counted.keys())
     rprint('[bold]Choose an item to drop:[/bold]')
     for index, item in enumerate(items, start=1):
-        rprint(f'{index}. {item} x {counted[item]} ({item_weight(item)} weight each)')
+        rprint(
+            f'[bright_yellow]{index}.[/bright_yellow] {item} x '
+            f'[bright_yellow]{counted[item]}[/bright_yellow] '
+            f'([cyan]{item_weight(item)} weight each[/cyan])'
+        )
 
     choice = input('Item number or name: ').strip().lower()
     selected_item = None
@@ -528,7 +571,7 @@ def drop_inventory_item():
 
     dropped = drop_item(selected_item, quantity)
     if dropped:
-        rprint(f'[yellow]You dropped {dropped} x {selected_item}.[/yellow]')
+        rprint(f'[yellow]You dropped [bright_yellow]{dropped}[/bright_yellow] x {selected_item}.[/yellow]')
         rprint(f'[cyan]Carry Weight: {current_weight()}/{max_carry_weight}[/cyan]')
     else:
         rprint('[red]You do not have that item.[/red]')
@@ -620,7 +663,7 @@ def spawn_enemies_and_fight(room_name):
     encounter = encounter_table[room_name]
     enemy_count = enemy_count_for_room(room_name)
 
-    rprint(f"[red]You hear {enemy_count} enemies nearby![/red]\n")
+    rprint(f"[red]You hear [bright_yellow]{enemy_count}[/bright_yellow] enemies nearby![/red]\n")
     pending_attack = None
     for _ in range(enemy_count):
         result = spawn_enemy_and_fight(room_name, encounter['enemy_classes'], pending_attack)
@@ -673,13 +716,15 @@ def convert_gems_to_gold():
     '''
 
     gem_values = {
-        'Garnet':15,
-        'Ruby':30,
-        'Rubies':30,
-        'Emerald':50,
-        'Emeralds':50,
-        'Diamond':100,
-        'Diamonds':100
+        'Garnet':5,
+        'Sapphire':25,
+        'Sapphires':25,
+        'Ruby':50,
+        'Rubies':50,
+        'Emerald':100,
+        'Emeralds':100,
+        'Diamond':200,
+        'Diamonds':200
     }
     counted = count_inv()
     total_gold = 0
@@ -695,9 +740,120 @@ def convert_gems_to_gold():
                 rprint(f'[yellow]You cannot carry the Gold value of your {gem}.[/yellow]')
 
     if total_gold:
-        rprint(f'[bright_green]You exchange your gems for {total_gold} Gold.[/bright_green]')
+        rprint(f'[bright_green]You exchange your gems for [yellow]{total_gold} Gold[/yellow].[/bright_green]')
     else:
         rprint('[grey66]You do not have any gems to exchange.[/grey66]')
+
+def colour_dice(damage):
+    '''
+    Colours dice expressions for display.
+    '''
+
+    return re.sub(r'\d+d\d+', rf'[{SUN_YELLOW}]\g<0>[/{SUN_YELLOW}]', damage)
+
+def attack_stats(attack):
+    '''
+    Formats attack stats for shop and inventory display.
+    '''
+
+    repeat_text = ''
+    if attack.get('times', 1) > 1:
+        repeat_text = f" [{DARK_VIOLET}]x{attack['times']}[/{DARK_VIOLET}]"
+    return f"[cyan]+{attack['hit_bonus']} to hit[/cyan], {colour_dice(attack['damage'])} damage{repeat_text}"
+
+def suited_for_text(classes):
+    '''
+    Formats class suitability text.
+    '''
+
+    return ', '.join(classes)
+
+def show_current_attacks():
+    '''
+    Displays the current player's available weapons and spells.
+    '''
+
+    if player is None:
+        return
+    rprint('[bold cyan]Current Weapons/Spells:[/bold cyan]')
+    for attack in player.attacks:
+        rprint(f'- {attack["name"]} ({attack_stats(attack)})')
+
+def available_attack_stock():
+    '''
+    Gets currently available attack gear for the shop.
+    '''
+
+    return {
+        item_name:unlock
+        for item_name, unlock in shop_attack_unlocks.items()
+        if unlock['min_run'] <= run_count and item_name not in shop_purchases
+    }
+
+def buy_gear():
+    '''
+    Lets the player buy available gear from the shop.
+    '''
+
+    if player is None:
+        rprint('[red]No player has been created yet.[/red]')
+        return
+
+    stock = []
+    for item_name, unlock in available_attack_stock().items():
+        stock.append(('attack', item_name, unlock))
+    for item_name, details in shop_consumables.items():
+        if details['min_run'] <= run_count:
+            stock.append(('consumable', item_name, details))
+
+    if not stock:
+        rprint('[grey66]The trader has no gear left for now.[/grey66]')
+        return
+
+    class_name = player.__class__.__name__
+    rprint('[bold yellow]Available Gear:[/bold yellow]')
+    for index, (item_type, item_name, details) in enumerate(stock, start=1):
+        if item_type == 'attack':
+            suited_for = suited_for_text(details['classes'])
+            usable_text = '[green]Usable[/green]' if class_name in details['classes'] else '[red]Unavailable[/red]'
+            rprint(
+                f'[bright_yellow]{index}.[/bright_yellow] {item_name} ({attack_stats(details["attack"])}) - '
+                f'Suited for: {suited_for} - [yellow]{details["price"]} Gold[/yellow] - {usable_text}'
+            )
+        else:
+            rprint(
+                f'[bright_yellow]{index}.[/bright_yellow] {item_name} - '
+                f'[yellow]{details["price"]} Gold[/yellow]'
+            )
+
+    choice = input('Buy item number, or Back: ').strip().lower()
+    if choice in ['back', 'b', '']:
+        return
+    if not choice.isdigit():
+        rprint('[red]Invalid gear choice.[/red]')
+        return
+
+    item_index = int(choice) - 1
+    if not 0 <= item_index < len(stock):
+        rprint('[red]Invalid gear choice.[/red]')
+        return
+
+    item_type, item_name, details = stock[item_index]
+    if item_type == 'attack' and class_name not in details['classes']:
+        rprint(f'[red]{item_name} is not usable by a {class_name}.[/red]')
+        return
+    if not can_carry(item_name):
+        rprint('[red]You cannot carry that item.[/red]')
+        return
+    if not spend_gold(details['price']):
+        rprint('[red]You do not have enough Gold.[/red]')
+        return
+
+    add_to_inv(item_name)
+    if item_type == 'attack':
+        shop_purchases.add(item_name)
+        apply_shop_attacks(player)
+    rprint(f'[bright_green]You bought [bright_yellow]1[/bright_yellow] x {item_name}.[/bright_green]')
 
 def spend_gold(amount):
     '''
@@ -715,55 +871,29 @@ def store():
     Lets the player buy useful items between successful runs.
     '''
 
-    store_items = {
-        '1':('Small Health Potion', 30),
-        '2':('Medium Health Potion', 75),
-        '3':('Large Health Potion', 140),
-        '4':('Sharp Dagger', 120),
-        '5':('Shortsword', 180),
-        '6':('Greatsword', 260),
-        '7':('Battleaxe', 240),
-        '8':('Warhammer', 220),
-        '9':('Halberd', 220),
-        '10':('Handaxe', 120),
-        '11':('Twin Daggers', 170),
-        '12':('Rapier', 190),
-        '13':('Hunter Bow', 230),
-        '14':('Crossbow', 210),
-        '15':('Poison Arrow', 80),
-        '16':('Spell Scroll: Ice Knife', 180),
-        '17':('Spell Scroll: Magic Missile', 220),
-        '18':('Spell Scroll: Lightning Bolt', 300),
-        '19':('Spell Scroll: Acid Arrow', 200),
-        '20':('Spell Scroll: Flame Lance', 280)
-    }
-
     rprint('[bold yellow]The dungeon trader opens their pack.[/bold yellow]')
     while True:
         counted = count_inv()
-        rprint(f'[cyan]Gold: {counted.get("Gold", 0)} | Carry Weight: {current_weight()}/{max_carry_weight}[/cyan]')
-        for item_number, (item_name, price) in store_items.items():
-            rprint(f'{item_number}. {item_name} - {price} Gold')
-        choice = input('Buy item number, Exchange gems, or Leave: ').strip().lower()
+        rprint(
+            f'[cyan]Gold: [yellow]{counted.get("Gold", 0)}[/yellow] | '
+            f'Carry Weight: {displayed_weight()}/{max_carry_weight}[/cyan]'
+        )
+        show_current_attacks()
+        rprint('[bright_yellow]1.[/bright_yellow] [bold]Buy[/bold] Gear')
+        rprint('[bright_yellow]2.[/bright_yellow] [bold]Sell[/bold] Loot')
+        rprint('[bright_yellow]3.[/bright_yellow] [bold]Leave[/bold] the Shop')
+        choice = input('Shop choice: ').strip().lower()
 
-        if choice in ['leave', 'l', '']:
+        if choice in ['3', 'leave', 'l', '']:
             return
-        if choice in ['exchange', 'exchange gems', 'gems', 'e', 'g']:
+        if choice in ['2', 'sell', 's', 'loot']:
             convert_gems_to_gold()
             continue
-        if choice not in store_items:
-            rprint('[red]Invalid store choice.[/red]')
+        if choice in ['1', 'buy', 'b', 'gear', 'g']:
+            buy_gear()
             continue
 
-        item_name, price = store_items[choice]
-        if not can_carry(item_name):
-            rprint('[red]You cannot carry that item.[/red]')
-            continue
-        if not spend_gold(price):
-            rprint('[red]You do not have enough Gold.[/red]')
-            continue
-        add_to_inv(item_name)
-        rprint(f'[bright_green]You bought 1 x {item_name}.[/bright_green]')
+        rprint('[red]Invalid store choice.[/red]')
 
 
 def end_game():
@@ -782,7 +912,7 @@ def end_game():
         for item_name, quantity in collected_loot:
             counted_loot[item_name]= counted_loot.get(item_name, 0) + quantity
         for item_name, quantity in counted_loot.items():
-            rprint(f'- {quantity} x {item_name}')
+            rprint(f'- [bright_yellow]{quantity}[/bright_yellow] x {item_name}')
     else:
         rprint("[dark_green]You didn't collect any loot.[/dark_green]")
 

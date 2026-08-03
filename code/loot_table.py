@@ -43,11 +43,12 @@ def random_enemy(enemy_name):
     if enemy_name == 'Ratking':
         chance_drop(drops, 70, 'Junk', 1, 3)
         chance_drop(drops, 55, 'Gold', 5, 10)
-        chance_drop(drops, 15, 'Garnet', 1, 2)
+        chance_drop(drops, 10, 'Garnet', 1, 2)
 
     elif enemy_name == 'Skeleton':
         chance_drop(drops, 60, 'Gold', 8, 18)
-        chance_drop(drops, 20, 'Ruby', 1, 2)
+        chance_drop(drops, 12, 'Sapphire', 1, 1)
+        chance_drop(drops, 8, 'Ruby', 1, 1)
         weapon = random.choices(['Sharp Dagger', 'Shortsword', None], weights=[10, 10, 80])[0]
         if weapon is not None:
             add_drop(drops, weapon, 1, 1)
@@ -55,8 +56,10 @@ def random_enemy(enemy_name):
     elif enemy_name == 'Goblin':
         chance_drop(drops, 75, 'Junk', 1, 3)
         chance_drop(drops, 65, 'Gold', 10, 25)
-        chance_drop(drops, 15, 'Ruby', 1, 2)
-        chance_drop(drops, 10, 'Emerald', 1, 1)
+        chance_drop(drops, 12, 'Garnet', 1, 2)
+        chance_drop(drops, 8, 'Sapphire', 1, 1)
+        chance_drop(drops, 5, 'Ruby', 1, 1)
+        chance_drop(drops, 3, 'Emerald', 1, 1)
         if random.randint(1, 100) <= 20:
             add_drop(drops, random.choice(['Old Dagger', 'Scimitar']), 1, 1)
 
@@ -66,9 +69,11 @@ def random_enemy(enemy_name):
 
     elif enemy_name == 'Thug':
         chance_drop(drops, 75, 'Gold', 20, 35)
-        chance_drop(drops, 25, 'Emerald', 1, 1)
-        chance_drop(drops, 8, 'Diamond', 1, 1)
-        chance_drop(drops, 35, 'Garnet', 1, 2)
+        chance_drop(drops, 20, 'Garnet', 1, 2)
+        chance_drop(drops, 15, 'Sapphire', 1, 1)
+        chance_drop(drops, 10, 'Ruby', 1, 1)
+        chance_drop(drops, 8, 'Emerald', 1, 1)
+        chance_drop(drops, 4, 'Diamond', 1, 1)
         chance_drop(drops, 20, 'Sharp Dagger', 1, 1)
 
     elif enemy_name == 'Ghost':
@@ -76,11 +81,12 @@ def random_enemy(enemy_name):
 
     elif enemy_name == 'Bone Devil':
         chance_drop(drops, 70, 'Gold', 35, 55)
-        chance_drop(drops, 25, 'Emerald', 1, 2)
+        chance_drop(drops, 12, 'Emerald', 1, 1)
+        chance_drop(drops, 6, 'Diamond', 1, 1)
 
     elif enemy_name == 'Minotaur':
         chance_drop(drops, 80, 'Gold', 40, 60)
-        chance_drop(drops, 35, 'Diamond', 1, 2)
+        chance_drop(drops, 15, 'Diamond', 1, 1)
 
     add_enemy_potion_drop(drops)
     return drops
@@ -91,7 +97,8 @@ def medium_chest():
     return [
         ('Gold', random.randint(25, 50)),
         ('Diamond', random.randint(0, 1)),
-        ('Emerald', random.randint(1, 3))
+        ('Emerald', random.randint(0, 1)),
+        ('Sapphire', random.randint(1, 2))
     ]
 
 def large_chest():
@@ -99,8 +106,9 @@ def large_chest():
 
     drops = [
         ('Gold', random.randint(90, 130)),
-        ('Diamond', random.randint(2, 5)),
-        ('Emerald', random.randint(4, 8))
+        ('Diamond', random.randint(1, 2)),
+        ('Emerald', random.randint(2, 4)),
+        ('Sapphire', random.randint(3, 6))
     ]
     if random.randint(1, 100) <= 10:
         drops.append((random.choice(['Medium Health Potion', 'Large Health Potion']), 1))
