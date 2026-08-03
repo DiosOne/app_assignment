@@ -139,13 +139,13 @@ def choose_player_attack(player):
         'Choose an Attack, or type "use" for potions, "inv" to check inventory, '
         'or "run" to flee the fight: '
     ).lower()
-    if choice in ['run', 'quit']:
+    if choice in ['run', 'r', 'quit']:
         return 'quit'
     if choice in ['use', 'use item', 'u']:
         return 'use'
-    if choice in ['inventory', 'inv']:
+    if choice in ['inventory', 'inv', 'i']:
         return 'inventory'
-    if choice in ['drop', 'drop item']:
+    if choice in ['drop', 'drop item', 'd']:
         return 'drop'
 
     if choice.isdigit():
@@ -240,7 +240,8 @@ def use_health_potion(player):
             selected_item = potions[item_index]
     else:
         for potion in potions:
-            if choice == potion.lower():
+            potion_shortcut = potion[0].lower()
+            if choice in [potion.lower(), potion_shortcut]:
                 selected_item = potion
 
     if selected_item is None:

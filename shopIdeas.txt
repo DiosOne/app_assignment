@@ -1,0 +1,22 @@
+Display who the weapons are suited for, and have a few simple spells useable by the martial characters. The higher level spells will be unavailable to them.
+Have the weapon/spell stats displayed next to the name, and list current weapons/spells underneath gold amount and carry weight.
+Change shop options to 1. Buy Gear, 2. Sell Loot, 3. Leave the Shop.
+Highlight the number and first word of each as indicators what to input.
+Bump prices to force difficult choices.
+when buying a new spell or weapon, make it useable from the inventory and then move it to the attack list
+remove the item from the shop list when purchased until a new game is not chosen and the list resets.
+
+temp ac boost potions
+  -
+  -
+
+various arrow types
+  -
+  -
+
+sort out gem prices.
+  - garnet 5 gold max 30 per run
+  - sapphire 25 gold max 20 per run
+  - ruby 50 gold max 10 per run
+  - emerald 100 gold max 5 per run
+  - diamond 200 gold max 2 per run

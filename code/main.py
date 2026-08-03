@@ -41,6 +41,7 @@ fought_rooms= set()
 searched_rooms= set()
 failed_search_rooms= set()
 search_attempts= {}
+room_messages= {}
 searchable_rooms = [
     'Bedroom', 'Library', 'Scullery',
     'Guard Post', 'Servants Quarters', 'Dining Hall',
@@ -130,11 +131,11 @@ def choose_player_class():
     show_title_screen()
     while True:
         choice= input('Class: ').strip().lower()
-        if choice in ['1', 'fighter']:
+        if choice in ['1', 'fighter', 'f']:
             return Fighter()
-        elif choice in ['2', 'mage']:
+        elif choice in ['2', 'mage', 'm']:
             return Mage()
-        elif choice in ['3', 'ranger']:
+        elif choice in ['3', 'ranger', 'r']:
             return Ranger()
         else:
             rprint('Invalid class, try again')
@@ -173,6 +174,7 @@ def start_new_run(keep_inventory=False):
     searched_rooms.clear()
     failed_search_rooms.clear()
     search_attempts.clear()
+    room_messages.clear()
     if not keep_inventory:
         clear_inv()
         add_to_inv('Small Health Potion', 2)
@@ -210,18 +212,23 @@ def show_room(room_name, show_exit_rooms=False):
     room= rooms[room_name]
     exits = format_exits(room_name, show_exit_rooms)
     search_hint = ''
-    if room_name in searched_rooms:
-        search_hint = '\n\n[grey66]This room is now empty.[/grey66]'
+    if room_name in room_messages:
+        search_hint = f'\n\n{room_messages[room_name]}'
+    elif room_name in searched_rooms:
+        if search_attempts.get(room_name, 0) >= 3:
+            search_hint = '\n\n[#E0FFFF]Whelp, guess its really empty.[/#E0FFFF]'
+        else:
+            search_hint = '\n\n[grey66]This room is empty.[/grey66]'
     elif room_name in searchable_rooms:
         attempts = search_attempts.get(room_name, 0)
         if attempts == 1:
-            search_hint = '\n\n[grey66]Hmm strange, maybe have a better look?[/grey66]'
+            search_hint = '\n\n[#E0FFFF]Hmm strange, maybe have a better look?[/#E0FFFF]'
         elif attempts == 2:
-            search_hint = "\n\n[grey66]It definetly feels like I'm missing something here...[/grey66]"
+            search_hint = "\n\n[#E0FFFF]It definetly feels like I'm missing something here...[/#E0FFFF]"
         else:
-            search_hint = '\n\n[grey66]Maybe you should look around this room.[/grey66]'
+            search_hint = '\n\n[#E0FFFF]Maybe you should look around this room.[/#E0FFFF]'
     elif room_name in fought_rooms:
-        search_hint = '\n\n[grey66]This room is now empty.[/grey66]'
+        search_hint = '\n\n[grey66]This room is empty.[/grey66]'
     rprint(Panel(
         f'[bright_blue]{room.get("display_name", room_name)}[/bright_blue]\n\n'
         f'{room["description"]}{search_hint}\n\n'
@@ -312,7 +319,7 @@ def normalize_move(move, room_name):
     shortcut = move.upper()
     return shortcut_directions.get(shortcut, direction)
 
-def add_loot(drops, source):
+def add_loot(drops, source, announce=True):
     '''
     Adds loot drops to the player's inventory and collected loot list.
 
@@ -322,9 +329,13 @@ def add_loot(drops, source):
     :type source: str
     '''
 
+    messages = []
+
     if not drops:
-        rprint(f'[grey66]You find nothing useful {source}.[/grey66]')
-        return
+        message = f'You find nothing useful {source}.'
+        if announce:
+            rprint(f'[grey66]{message}[/grey66]')
+        return [message]
 
     for item_name, quantity in drops:
         accepted = 0
@@ -348,14 +359,25 @@ def add_loot(drops, source):
                 break
         if accepted:
             if source.startswith('from the '):
-                rprint(f'[bright_green]You recieved {accepted} x {item_name}.[/bright_green]')
+                message = f'You recieved {accepted} x {item_name}.'
+                messages.append(message)
+                if announce:
+                    rprint(f'[bright_green]{message}[/bright_green]')
             else:
-                rprint(f"[bright_green]You found {accepted} x {item_name} {source}![/bright_green]")
+                message = f'You found {accepted} x {item_name} {source}!'
+                messages.append(message)
+                if announce:
+                    rprint(f'[bright_green]{message}[/bright_green]')
         if remaining:
-            rprint(
-                f'[yellow]You leave {remaining} x {item_name}; '
-                f'carry weight is {current_weight()}/{max_carry_weight}.[/yellow]'
+            message = (
+                f'You leave {remaining} x {item_name}; '
+                f'carry weight is {current_weight()}/{max_carry_weight}.'
             )
+            messages.append(message)
+            if announce:
+                rprint(f'[yellow]{message}[/yellow]')
+
+    return messages
 
 def search_room(room_name):
     '''
@@ -373,16 +395,19 @@ def search_room(room_name):
     }
 
     if room_name not in searchable_rooms:
-        rprint('[grey66]There does not seem to be anything hidden here.[/grey66]')
+        room_messages[room_name] = '[#E0FFFF]There does not seem to be anything hidden here.[/#E0FFFF]'
         return
 
     if room_name in searched_rooms:
-        rprint('[grey66]You have already found everything useful here.[/grey66]')
+        if search_attempts.get(room_name, 0) >= 3:
+            room_messages[room_name] = '[#E0FFFF]Whelp, guess its really empty.[/#E0FFFF]'
+        else:
+            room_messages[room_name] = '[grey66]This room is empty.[/grey66]'
         return
 
     attempts = search_attempts.get(room_name, 0)
     if attempts >= 3:
-        rprint('[grey66]Whelp, guess its really empty[/grey66]')
+        room_messages[room_name] = '[#E0FFFF]Whelp, guess its really empty.[/#E0FFFF]'
         return
 
     search_roll = random.randint(1, 20)
@@ -393,14 +418,18 @@ def search_room(room_name):
         if attempts >= 3:
             searched_rooms.add(room_name)
             failed_search_rooms.discard(room_name)
-        rprint(f'[grey66]{failure_messages[attempts]}[/grey66]')
+        room_messages[room_name] = f'[#E0FFFF]{failure_messages[attempts]}[/#E0FFFF]'
         return
 
     drops = random_room_treasure(room_name)
     searched_rooms.add(room_name)
     failed_search_rooms.discard(room_name)
-    rprint('[bright_green]You found a hidden treasure chest![/bright_green]')
-    add_loot(drops, f'while searching {room_name}')
+    loot_messages = add_loot(drops, f'while searching {room_name}', announce=False)
+    room_messages[room_name] = (
+        '[#E0FFFF]You found a hidden treasure chest!\n'
+        + '\n'.join(loot_messages)
+        + '[/#E0FFFF]'
+    )
 
 def use_item():
     '''
@@ -436,7 +465,8 @@ def use_item():
             selected_item = potions[item_index]
     else:
         for potion in potions:
-            if choice == potion.lower():
+            potion_shortcut = potion[0].lower()
+            if choice in [potion.lower(), potion_shortcut]:
                 selected_item = potion
 
     if selected_item is None:
@@ -554,11 +584,16 @@ def spawn_enemy_and_fight(room_name, enemy_classes, pending_attack=None):
     rprint(f"[red]An enemy [{enemy.colour}]{enemy.name}[/{enemy.colour}] appears![/red]")
     opening_attack = None
     if pending_attack is not None:
-        choice = input(
-            f'Attack with remaining {attack_name_plural(pending_attack["attack"])}? [y/n]: '
-        ).strip().lower()
-        if choice in ['y', 'yes']:
-            opening_attack = pending_attack
+        while True:
+            choice = input(
+                f'Attack with remaining {attack_name_plural(pending_attack["attack"])}? [y/n]: '
+            ).strip().lower()
+            if choice == 'y':
+                opening_attack = pending_attack
+                break
+            if choice == 'n':
+                break
+            rprint('[red]Please enter y or n.[/red]')
     combat_separator()
     result = fight_enemy(current_player, enemy, opening_attack)
     if combat_result_status(result) == 'win':
@@ -713,7 +748,7 @@ def store():
 
         if choice in ['leave', 'l', '']:
             return
-        if choice in ['exchange', 'exchange gems', 'gems']:
+        if choice in ['exchange', 'exchange gems', 'gems', 'e', 'g']:
             convert_gems_to_gold()
             continue
         if choice not in store_items:
@@ -807,6 +842,8 @@ def game_loop():
             f'"search" to search the room, "inv" to check inventory, "use" for potions, '
             f'or "quit" to quit the game'
         )
+        print()
+        print()
         move = normalize_move(move, current_room)
 
         if move == 'Inventory':
@@ -818,6 +855,8 @@ def game_loop():
             continue
         if move == 'Search':
             search_room(current_room)
+            show_room(current_room)
+            show_current_room = False
             continue
         if move == 'Use':
             use_item()
@@ -831,7 +870,9 @@ def game_loop():
         if move in rooms[current_room]['exits']:
             current_room = rooms[current_room]['exits'][move]
         else:
-            rprint(f'[red]You cannot go {move}![/red]')
+            room_messages[current_room] = f'[red]You cannot go {move}![/red]'
+            show_room(current_room)
+            show_current_room = False
 
 if __name__== '__main__':
     game_loop()
